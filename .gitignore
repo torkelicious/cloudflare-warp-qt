@@ -1,25 +1,30 @@
-# C++ objects and libs
+# Build Output / Binaries
+/build
+*build-*
+*.o
+*.obj
 *.slo
 *.lo
-*.o
 *.a
+*.lib
 *.la
 *.lai
 *.so
 *.so.*
-*.dll
 *.dylib
+*.dll
+*.exe
+*.out
+*.app
+*.d
+*.gch
+*.pch
+*.ilk
+*.pdb
+*.dwo
 
-# Qt-es
-object_script.*.Release
-object_script.*.Debug
-*_plugin_import.cpp
-/.qmake.cache
-/.qmake.stash
-*.pro.user
-*.pro.user.*
-*.qbs.user
-*.qbs.user.*
+# Qt & QMake
+Makefile*
 *.moc
 moc_*.cpp
 moc_*.h
@@ -27,72 +32,28 @@ qrc_*.cpp
 ui_*.h
 *.qmlc
 *.jsc
-Makefile*
-*build-*
 *.qm
 *.prl
-
-# Qt unit tests
+object_script.*
+*_plugin_import.cpp
+*_qmlcache.qrc
+.qmake.stash
+.qmake.cache
 target_wrapper.*
 
-# QtCreator
+# Qt Creator
+CMakeLists.txt.user*
+*.pro.user*
+*.qbs.user*
+*.qmlproject.user*
+*creator.user*
 *.autosave
 
-# QtCreator Qml
-*.qmlproject.user
-*.qmlproject.user.*
+# trash
+/.idea
+.vscode/
 
-# QtCreator CMake
-CMakeLists.txt.user*
-
-# QtCreator 4.8< compilation database
 compile_commands.json
 
-# QtCreator local machine specific files for imported projects
-*creator.user*
-
-*_qmlcache.qrc
-
-# Prerequisites
-*.d
-
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Linker files
-*.ilk
-
-# Debugger Files
-*.pdb
-
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
-
-# Fortran module files
-*.mod
-*.smod
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
-
-# Executables
-*.exe
-*.out
-*.app
-
-# debug information files
-*.dwo
-/.idea
-/build
+.DS_Store
+Thumbs.db
