@@ -1,4 +1,4 @@
-# Cloudflare WARP Qt
+# Cloudflare Warp Qt
 
 A lightweight C++ (Qt6) GUI based on the Cloudflare WARP CLI (`warp-cli`) on Linux.
 
@@ -15,6 +15,7 @@ The application provides a system tray icon and a compact control panel for togg
   * **Operation Modes** – Switch between `warp`, `doh`, `dot`, etc.
   * **Registration** – Register a new client via the GUI.
   * **Service Fixer** – Built-in utility to enable the `warp-svc` daemon and disable the conflicting official `warp-taskbar`.
+  * *The config file can be found at `~/.config/warp-qt/CloudflareWarpQt.conf`*
 
 ## Requirements
 
