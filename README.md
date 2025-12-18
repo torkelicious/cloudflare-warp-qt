@@ -1,4 +1,4 @@
-# Cloudflare WARP Qt
+# Cloudflare Warp Qt
 
 A lightweight C++ (Qt6) GUI based on the Cloudflare WARP CLI (`warp-cli`) on Linux.
 
