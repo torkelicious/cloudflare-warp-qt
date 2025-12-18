@@ -4,12 +4,11 @@
 
 SysTray::SysTray(Widget *widget, QObject *parent)
     : QObject(parent)
-    , popupWidget(widget)
-    , lastKnownState(false) 
-{
+      , popupWidget(widget)
+      , lastKnownState(false) {
     // Initialize state
     lastKnownState = mf.isWarpConnected();
-    
+
     setupTray();
 
     pollTimer = new QTimer(this);
@@ -42,9 +41,9 @@ void SysTray::setupTray() {
         } else {
             mf.cliConnect();
         }
-        
+
         // wait briefly then check reality
-        QTimer::singleShot(1000, this, [this](){
+        QTimer::singleShot(1000, this, [this]() {
             checkStatus();
         });
     });
@@ -71,7 +70,7 @@ void SysTray::setupTray() {
             }
         }
     });
-    
+
     updateStatus(lastKnownState);
     trayIcon->show();
 }

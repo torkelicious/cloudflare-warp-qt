@@ -13,13 +13,20 @@ class SysTray : public QObject {
 
 public:
     explicit SysTray(Widget *widget, QObject *parent = nullptr);
+
     void setupTray();
 
-public slots:
+public
+    slots:
+    
+
     void updateStatus(bool connected);
+
     void checkStatus();
 
-signals:
+    signals:
+    
+
     void connectionChanged(bool connected);
 
 private:

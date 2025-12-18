@@ -3,12 +3,13 @@
 #include <QMessageBox>
 #include <QDebug>
 
-MainFunctions::MainFunctions() {}
+MainFunctions::MainFunctions() {
+}
 
 QString MainFunctions::runCommand(const QString &program, const QStringList &arguments) {
     QProcess process;
     process.start(program, arguments);
-    
+
     // Wait up to 3 seconds for a response, then fail gracefully
     if (!process.waitForFinished(3000)) {
         return QString();
@@ -21,8 +22,8 @@ void MainFunctions::cliConnect() {
 
     // Only show error if it fails and output isn't empty (or Success)
     if (!output.contains("Success", Qt::CaseInsensitive) && !output.isEmpty()) {
-         // Check service if connection failed
-        if (!isServiceActive()) return; 
+        // Check service if connection failed
+        if (!isServiceActive()) return;
 
         QMessageBox::warning(nullptr, "Warp Error", output);
     }

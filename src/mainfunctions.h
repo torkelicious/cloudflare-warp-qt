@@ -11,11 +11,15 @@ public:
     QString runCommand(const QString &program, const QStringList &arguments);
 
     void cliConnect();
+
     void cliDisconnect();
+
     void cliRegister();
 
     QString cliStatus();
+
     bool isServiceActive();
+
     bool isWarpConnected();
 };
 

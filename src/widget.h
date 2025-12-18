@@ -8,7 +8,11 @@
 #include "settingsdiag.h"
 
 QT_BEGIN_NAMESPACE
-namespace Ui { class Widget; }
+
+namespace Ui {
+    class Widget;
+}
+
 QT_END_NAMESPACE
 
 class Widget : public QWidget {
@@ -16,23 +20,35 @@ class Widget : public QWidget {
 
 public:
     explicit Widget(QWidget *parent = nullptr);
+
     ~Widget();
 
     void showPositioned();
 
 protected:
     void closeEvent(QCloseEvent *event) override;
+
     bool event(QEvent *event) override;
 
-private slots:
+private
+    slots:
+    
+
     void on_btn_start_clicked();
+
     void on_btn_settings_clicked(); // <--- New Slot
 
-public slots:
+public
+    slots:
+    
+
     void onConnectionChanged(bool connected);
+
     void openSettings();
 
-signals:
+    signals:
+    
+
     void connectionChanged(bool connected);
 
 private:
@@ -41,7 +57,9 @@ private:
     bool connectedState;
 
     void updateUI();
-    QString getPrivateHtml() const; 
+
+    QString getPrivateHtml() const;
+
     QString getNotPrivateHtml() const;
 };
 #endif // WIDGET_H

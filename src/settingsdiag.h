@@ -17,14 +17,21 @@ class SettingsDiag : public QDialog {
 public:
     explicit SettingsDiag(QWidget *parent = nullptr);
 
-private slots:
+private
+    slots:
+    
+
     void saveSettings();
+
     void registerNewClient();
+
     void fixSystemServices();
 
 private:
     void setupUI();
+
     void loadSettings();
+
     void setAutoStart(bool enable);
 
     QCheckBox *checkAutoStart;

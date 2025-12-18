@@ -14,16 +14,14 @@
 #include <QVBoxLayout>
 
 SettingsDiag::SettingsDiag(QWidget *parent)
-    : QDialog(parent)
-{
+    : QDialog(parent) {
     setWindowTitle("Settings");
     resize(320, 400); // Increased height for new option
     setupUI();
     loadSettings();
 }
 
-void SettingsDiag::setupUI()
-{
+void SettingsDiag::setupUI() {
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
 
     // General Settings
@@ -45,7 +43,7 @@ void SettingsDiag::setupUI()
 
     btnFixServices = new QPushButton("Enable Warp Daemon && Kill Official Tray", this);
     btnFixServices->setToolTip("Requires Root. Enables 'warp-svc' and disables 'warp-taskbar'.");
-    
+
     systemLayout->addWidget(btnFixServices);
     mainLayout->addWidget(groupSystem);
 
@@ -72,16 +70,14 @@ void SettingsDiag::setupUI()
     connect(btnFixServices, &QPushButton::clicked, this, &SettingsDiag::fixSystemServices);
 }
 
-void SettingsDiag::loadSettings()
-{
+void SettingsDiag::loadSettings() {
     // Load state from QSettings
     checkAutoConnect->setChecked(settings.value("autoConnect", false).toBool());
     checkAutoStart->setChecked(settings.value("autoStart", false).toBool());
     checkShowOnStart->setChecked(settings.value("showOnStart", false).toBool()); // <--- Load
 }
 
-void SettingsDiag::saveSettings()
-{
+void SettingsDiag::saveSettings() {
     settings.setValue("autoConnect", checkAutoConnect->isChecked());
     settings.setValue("autoStart", checkAutoStart->isChecked());
     settings.setValue("showOnStart", checkShowOnStart->isChecked()); // <--- Save
@@ -94,8 +90,7 @@ void SettingsDiag::saveSettings()
     accept();
 }
 
-void SettingsDiag::setAutoStart(bool enable)
-{
+void SettingsDiag::setAutoStart(bool enable) {
     QString configDir = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);
     QDir dir(configDir);
     if (!dir.exists("autostart"))
@@ -110,7 +105,7 @@ void SettingsDiag::setAutoStart(bool enable)
             out << "[Desktop Entry]\n";
             out << "Type=Application\n";
             out << "Name=CloudflareWarpQt\n";
-            out << "Exec=CloudflareWarpQt\n"; 
+            out << "Exec=CloudflareWarpQt\n";
             out << "X-GNOME-Autostart-enabled=true\n";
             file.close();
         }
@@ -120,8 +115,7 @@ void SettingsDiag::setAutoStart(bool enable)
     }
 }
 
-void SettingsDiag::registerNewClient()
-{
+void SettingsDiag::registerNewClient() {
     auto reply = QMessageBox::question(
         this,
         "Register",
@@ -133,24 +127,23 @@ void SettingsDiag::registerNewClient()
     }
 }
 
-void SettingsDiag::fixSystemServices()
-{
+void SettingsDiag::fixSystemServices() {
     QString cmd = "systemctl enable --now warp-svc && "
-                  "(systemctl disable --user --now warp-taskbar || true) && "
-                  "(pkill -f warp-taskbar || true)";
+            "(systemctl disable --user --now warp-taskbar || true) && "
+            "(pkill -f warp-taskbar || true)";
 
     QProcess process;
     process.start("pkexec", {"sh", "-c", cmd});
     process.waitForFinished(-1);
 
     if (process.exitCode() == 0) {
-        QMessageBox::information(this, "Success", 
-            "Services configured successfully.\n\n"
-            "- 'warp-svc' enabled\n"
-            "- 'warp-taskbar' disabled/killed");
+        QMessageBox::information(this, "Success",
+                                 "Services configured successfully.\n\n"
+                                 "- 'warp-svc' enabled\n"
+                                 "- 'warp-taskbar' disabled/killed");
     } else {
-        QMessageBox::warning(this, "Operation Cancelled", 
-            "Could not configure services.\n"
-            "Either the password was incorrect or the action was cancelled.");
+        QMessageBox::warning(this, "Operation Cancelled",
+                             "Could not configure services.\n"
+                             "Either the password was incorrect or the action was cancelled.");
     }
 }

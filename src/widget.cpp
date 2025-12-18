@@ -8,9 +8,8 @@
 
 Widget::Widget(QWidget *parent)
     : QWidget(parent)
-    , ui(new Ui::Widget)
-    , connectedState(false) 
-{
+      , ui(new Ui::Widget)
+      , connectedState(false) {
     ui->setupUi(this);
     setFixedSize(310, 405);
     setWindowFlags(Qt::Tool | Qt::WindowStaysOnTopHint);
@@ -33,8 +32,7 @@ Widget::~Widget() {
     delete ui;
 }
 
-void Widget::openSettings()
-{
+void Widget::openSettings() {
     SettingsDiag dlg(this);
     dlg.exec();
 }
@@ -60,7 +58,7 @@ void Widget::showPositioned() {
     QPoint cursor = QCursor::pos();
     QScreen *screen = QGuiApplication::screenAt(cursor);
     if (!screen) screen = QGuiApplication::primaryScreen();
-    
+
     QRect screenGeom = screen->geometry();
 
     int x = cursor.x() - (width() / 2);
@@ -84,7 +82,7 @@ void Widget::updateUI() {
         ui->connected_status->setText("CONNECTED");
         ui->connected_status->setStyleSheet("color: #F48120; font-weight: bold;");
         ui->sub_status->setText(getPrivateHtml());
-        
+
         ui->btn_start->setStyleSheet(
             "QPushButton { background-color: #F48120; color: #ffffff; "
             "padding: 15px 32px; border-radius: 20px; font-weight: bold; font-size: 18px; border: none; } "
@@ -137,12 +135,12 @@ void Widget::onConnectionChanged(bool connected) {
 
 QString Widget::getPrivateHtml() const {
     return "<html><body><p><span style='font-size:11pt; color:#b0b0b0;'>Your "
-           "internet is </span><span style='font-size:11pt; font-weight:600; "
-           "color:#F48120;'>private</span></p></body></html>";
+            "internet is </span><span style='font-size:11pt; font-weight:600; "
+            "color:#F48120;'>private</span></p></body></html>";
 }
 
 QString Widget::getNotPrivateHtml() const {
     return "<html><body><p><span style='font-size:11pt; color:#b0b0b0;'>Your "
-           "internet is </span><span style='font-size:11pt; font-weight:600; "
-           "color:#ffffff;'>not private</span></p></body></html>";
+            "internet is </span><span style='font-size:11pt; font-weight:600; "
+            "color:#ffffff;'>not private</span></p></body></html>";
 }
