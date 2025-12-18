@@ -4,6 +4,9 @@ A lightweight C++ (Qt6) GUI based on the Cloudflare WARP CLI (`warp-cli`) on Lin
 
 The application provides a system tray icon and a compact control panel for toggling the connection status, managing configuration options, and handling registration.
 
+
+![Badly croppped Screenshot of Application](https://github.com/torkelicious/cloudflare-warp-qt/blob/main/appscreenshot.jpg?raw=true)
+
 ## Features
 
 * **Toggle Connection** – Connect or disconnect directly from the UI or the system tray.
@@ -28,7 +31,7 @@ The application provides a system tray icon and a compact control panel for togg
 You can use the provided `build_install.sh` script to compile and install the application.
 
 ```bash
-./build_install.sh
+chmod +x build_install.sh && ./build_install.sh
 ```
 
 ## Uninstall
@@ -36,7 +39,7 @@ You can use the provided `build_install.sh` script to compile and install the ap
 To uninstall the application, run the included uninstaller script:
 
 ```bash
-./uninstall.sh
+chmod +x uninstall.sh && ./uninstall.sh
 ```
 
 I will probably either replace or compliment the current installation scripts with a PKGBUILD soon.

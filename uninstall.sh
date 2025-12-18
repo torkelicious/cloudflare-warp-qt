@@ -9,7 +9,7 @@ ICON_FILE="cloudflare-warp-qt.png"
 
 echo "Uninstalling $APP_NAME..."
 
-# 1. Remove the Binary
+# Remove the Binary
 if [ -f "/usr/bin/$BINARY_NAME" ]; then
     echo "Removing binary from /usr/bin..."
     sudo rm -f "/usr/bin/$BINARY_NAME"
@@ -20,6 +20,7 @@ if [ -f "/usr/local/bin/$BINARY_NAME" ]; then
     sudo rm -f "/usr/local/bin/$BINARY_NAME"
 fi
 
+# Remove desktop entry
 if [ -f "/usr/share/applications/$DESKTOP_FILE" ]; then
     echo "Removing desktop entry..."
     sudo rm -f "/usr/share/applications/$DESKTOP_FILE"
@@ -30,6 +31,7 @@ if [ -f "/usr/local/share/applications/$DESKTOP_FILE" ]; then
     sudo rm -f "/usr/local/share/applications/$DESKTOP_FILE"
 fi
 
+# Remove icon file
 if [ -f "/usr/share/pixmaps/$ICON_FILE" ]; then
     echo "Removing icon..."
     sudo rm -f "/usr/share/pixmaps/$ICON_FILE"
@@ -40,6 +42,7 @@ if [ -f "/usr/local/share/pixmaps/$ICON_FILE" ]; then
     sudo rm -f "/usr/local/share/pixmaps/$ICON_FILE"
 fi
 
+# Update dekstop db
 echo "Updating desktop database..."
 if command -v update-desktop-database >/dev/null 2>&1; then
     sudo update-desktop-database
