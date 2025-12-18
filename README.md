@@ -52,7 +52,7 @@ I will probably either replace or compliment the current installation scripts wi
 
 ### “The application is already running”
 
-The app uses a lock file at `/tmp/warp-qt.lock` to prevent multiple instances. Check your system tray—the icon may be hidden.
+The app uses a lock file at `/tmp/warp-qt.<user>.lock` to prevent multiple instances. Check your system tray—the icon may be hidden.
 
 ### Duplicate tray icons
 
