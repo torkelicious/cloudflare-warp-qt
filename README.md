@@ -39,7 +39,7 @@ chmod +x build_install.sh && ./build_install.sh
 To uninstall the application, run the included uninstaller script:
 
 ```bash
-chmod +x uninstall.sh && uninstall.sh
+chmod +x uninstall.sh && ./uninstall.sh
 ```
 
 I will probably either replace or compliment the current installation scripts with a PKGBUILD soon.
