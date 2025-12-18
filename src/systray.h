@@ -17,16 +17,12 @@ public:
     void setupTray();
 
 public
-    slots:
-    
-
+slots:
     void updateStatus(bool connected);
 
     void checkStatus();
 
-    signals:
-    
-
+signals:
     void connectionChanged(bool connected);
 
 private:
@@ -35,7 +31,7 @@ private:
     MainFunctions mf;
     QAction *toggleAction;
     QTimer *pollTimer;
-    bool lastKnownState; // Local state tracking instead of static global
+    bool lastKnownState;
 };
 
 #endif // SYSTRAY_H

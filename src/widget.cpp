@@ -4,24 +4,27 @@
 #include <QScreen>
 #include <QSettings>
 #include <QTimer>
+#include <QFutureWatcher>
 #include "./ui_widget.h"
 
 Widget::Widget(QWidget *parent)
     : QWidget(parent)
       , ui(new Ui::Widget)
-      , connectedState(false) {
+      , connectedState(false)
+      , shouldUnfocus(false)
+      , pendingState(TransitionState::None) {
     ui->setupUi(this);
     setFixedSize(310, 405);
     setWindowFlags(Qt::Tool | Qt::WindowStaysOnTopHint);
 
-    // Auto Connect check
+    refreshSettings();
+
     QSettings settings;
     bool shouldAutoConnect = settings.value("autoConnect", false).toBool();
     bool actuallyConnected = mf.isWarpConnected();
 
     if (shouldAutoConnect && !actuallyConnected) {
         mf.cliConnect();
-        // dont update manually, trust the autoupdate
     }
 
     connectedState = actuallyConnected;
@@ -32,9 +35,15 @@ Widget::~Widget() {
     delete ui;
 }
 
+void Widget::refreshSettings() {
+    QSettings settings;
+    shouldUnfocus = settings.value("minimizeOnUnfocus", true).toBool();
+}
+
 void Widget::openSettings() {
     SettingsDiag dlg(this);
     dlg.exec();
+    refreshSettings();
 }
 
 void Widget::on_btn_settings_clicked() {
@@ -48,6 +57,7 @@ void Widget::closeEvent(QCloseEvent *event) {
 
 bool Widget::event(QEvent *event) {
     if (event->type() == QEvent::WindowDeactivate) {
+        if (!shouldUnfocus) { return true; }
         hide();
         return true;
     }
@@ -66,15 +76,44 @@ void Widget::showPositioned() {
 
     if (y < screenGeom.top()) y = cursor.y() + 20;
     if (x < screenGeom.left()) x = screenGeom.left() + 5;
-    if (x + width() > screenGeom.right()) x = screenGeom.right() - width() - 5;
+    int screenRight = screenGeom.x() + screenGeom.width();
+    if (x + width() > screenRight) x = screenRight - width() - 5;
 
     move(x, y);
     show();
-    activateWindow();
-    raise();
+    const QString platform = QGuiApplication::platformName();
+    if (!platform.contains("wayland", Qt::CaseInsensitive)) {
+        activateWindow();
+        raise();
+    } else {
+        QApplication::alert(this);
+    }
 }
 
 void Widget::updateUI() {
+    if (pendingState == TransitionState::Connecting) {
+        ui->btn_start->setEnabled(false);
+        ui->btn_start->setText("Connecting...");
+        ui->connected_status->setText("CONNECTING...");
+        ui->connected_status->setStyleSheet("color: #F48120; font-weight: bold;");
+        ui->sub_status->setText("Please wait...");
+        ui->btn_start->setStyleSheet(
+            "QPushButton { background-color: #FAAD3F; color: #ffffff; "
+            "padding: 15px 32px; border-radius: 20px; font-weight: bold; font-size: 18px; border: none; }");
+        return;
+    }
+    if (pendingState == TransitionState::Disconnecting) {
+        ui->btn_start->setEnabled(false);
+        ui->btn_start->setText("Disconnecting...");
+        ui->connected_status->setText("DISCONNECTING...");
+        ui->connected_status->setStyleSheet("color: #ffffff; font-weight: bold;");
+        ui->sub_status->setText("Please wait...");
+        ui->btn_start->setStyleSheet(
+            "QPushButton { background-color: #FAAD3F; color: #ffffff; "
+            "padding: 15px 32px; border-radius: 20px; font-weight: bold; font-size: 18px; border: none; }");
+        return;
+    }
+
     ui->btn_start->setEnabled(true);
 
     if (connectedState) {
@@ -101,36 +140,55 @@ void Widget::updateUI() {
 }
 
 void Widget::on_btn_start_clicked() {
-    ui->btn_start->setEnabled(false);
+    setPending(connectedState ? TransitionState::Disconnecting : TransitionState::Connecting);
+    updateUI();
 
-    ui->btn_start->setText(connectedState ? "Disconnecting..." : "Connecting...");
-    ui->btn_start->setStyleSheet(
-        "QPushButton { background-color: #FAAD3F; color: #ffffff; "
-        "padding: 15px 32px; border-radius: 20px; font-weight: bold; font-size: 18px; border: none; }");
-
-    QApplication::processEvents();
-
+    auto watcher = new QFutureWatcher<MainFunctions::CommandResult>(this);
     if (!connectedState) {
-        mf.cliConnect();
+        watcher->setFuture(mf.cliConnectAsync());
     } else {
-        mf.cliDisconnect();
+        watcher->setFuture(mf.cliDisconnectAsync());
     }
 
-    QTimer::singleShot(1000, this, [this]() {
-        bool reality = mf.isWarpConnected();
-        if (reality != connectedState) {
-            connectedState = reality;
-            emit connectionChanged(connectedState);
-        }
-        updateUI();
+    connect(watcher, &QFutureWatcherBase::finished, this, [this, watcher]() {
+        watcher->deleteLater();
+        const bool expected = !connectedState; // true when connecting, false when disconnecting
+        int attempt = 0;
+        const int initialDelay = expected ? 2000 : 800; // wait a bit before first check
+        std::function<void()> poll = [this, expected, &attempt, &poll]() mutable {
+            bool reality = mf.isWarpConnected();
+            if (reality == expected) {
+                connectedState = reality;
+                setPending(TransitionState::None);
+                emit connectionChanged(connectedState);
+                updateUI();
+                return;
+            }
+            static const int delays[] = {500, 1000, 2000, 3000, 4000, 5000};
+            if (attempt >= int(sizeof(delays) / sizeof(delays[0]))) {
+                connectedState = reality;
+                setPending(TransitionState::None);
+                emit connectionChanged(connectedState);
+                updateUI();
+                return;
+            }
+            int delay = delays[attempt++];
+            QTimer::singleShot(delay, this, poll);
+        };
+        QTimer::singleShot(initialDelay, this, poll);
     });
 }
 
 void Widget::onConnectionChanged(bool connected) {
     if (connectedState != connected) {
         connectedState = connected;
+        setPending(TransitionState::None);
         updateUI();
     }
+}
+
+void Widget::setPending(TransitionState state) {
+    pendingState = state;
 }
 
 QString Widget::getPrivateHtml() const {

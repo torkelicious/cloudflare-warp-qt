@@ -31,32 +31,34 @@ protected:
     bool event(QEvent *event) override;
 
 private
-    slots:
-    
-
+slots:
     void on_btn_start_clicked();
 
-    void on_btn_settings_clicked(); // <--- New Slot
+    void on_btn_settings_clicked();
 
 public
-    slots:
-    
-
+slots:
     void onConnectionChanged(bool connected);
 
     void openSettings();
 
-    signals:
-    
-
+signals:
     void connectionChanged(bool connected);
 
 private:
+    enum class TransitionState { None, Connecting, Disconnecting };
+
     Ui::Widget *ui;
     MainFunctions mf;
     bool connectedState;
+    bool shouldUnfocus;
+    TransitionState pendingState;
+
+    void refreshSettings();
 
     void updateUI();
+
+    void setPending(TransitionState state);
 
     QString getPrivateHtml() const;
 

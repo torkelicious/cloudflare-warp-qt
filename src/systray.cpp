@@ -1,12 +1,12 @@
 #include "systray.h"
 #include <QApplication>
 #include <QMenu>
+#include <QFutureWatcher>
 
 SysTray::SysTray(Widget *widget, QObject *parent)
     : QObject(parent)
       , popupWidget(widget)
       , lastKnownState(false) {
-    // Initialize state
     lastKnownState = mf.isWarpConnected();
 
     setupTray();
@@ -19,7 +19,6 @@ SysTray::SysTray(Widget *widget, QObject *parent)
 void SysTray::checkStatus() {
     bool actualState = mf.isWarpConnected();
 
-    // Only update if state has changed
     if (actualState != lastKnownState) {
         lastKnownState = actualState;
         emit connectionChanged(actualState);
@@ -28,23 +27,61 @@ void SysTray::checkStatus() {
 }
 
 void SysTray::setupTray() {
-    trayIcon = new QSystemTrayIcon(this); // Parented to this (SysTray)
+    trayIcon = new QSystemTrayIcon(this);
 
-    QMenu *menu = new QMenu(popupWidget); //  QMenu usually needs a parent or to be deleted manually
+    QMenu *menu = new QMenu(popupWidget);
 
     toggleAction = new QAction("Connect", this);
 
     connect(toggleAction, &QAction::triggered, [this]() {
-        // optimistic UI update
+        toggleAction->setEnabled(false);
+        if (pollTimer && pollTimer->isActive()) pollTimer->stop();
         if (lastKnownState) {
-            mf.cliDisconnect();
+            toggleAction->setText("Disconnecting...");
+            trayIcon->setToolTip("Warp: Disconnecting...");
         } else {
-            mf.cliConnect();
+            toggleAction->setText("Connecting...");
+            trayIcon->setToolTip("Warp: Connecting...");
         }
 
-        // wait briefly then check reality
-        QTimer::singleShot(1000, this, [this]() {
-            checkStatus();
+        auto watcher = new QFutureWatcher<MainFunctions::CommandResult>(this);
+        if (lastKnownState) {
+            watcher->setFuture(mf.cliDisconnectAsync());
+        } else {
+            watcher->setFuture(mf.cliConnectAsync());
+        }
+        connect(watcher, &QFutureWatcherBase::finished, this, [this, watcher]() {
+            watcher->deleteLater();
+            const bool expected = !lastKnownState;
+            int attempt = 0;
+            const int initialDelay = expected ? 2000 : 800; // wait a bit before first check
+            std::function<void()> poll = [this, expected, &attempt, &poll]() mutable {
+                bool reality = mf.isWarpConnected();
+                if (reality == expected) {
+                    if (reality != lastKnownState) {
+                        lastKnownState = reality;
+                        emit connectionChanged(reality);
+                    }
+                    updateStatus(reality);
+                    toggleAction->setEnabled(true);
+                    if (pollTimer) pollTimer->start(5000);
+                    return;
+                }
+                static const int delays[] = {500, 1000, 2000, 3000, 4000, 5000};
+                if (attempt >= int(sizeof(delays) / sizeof(delays[0]))) {
+                    if (reality != lastKnownState) {
+                        lastKnownState = reality;
+                        emit connectionChanged(reality);
+                    }
+                    updateStatus(reality);
+                    toggleAction->setEnabled(true);
+                    if (pollTimer) pollTimer->start(5000);
+                    return;
+                }
+                int delay = delays[attempt++];
+                QTimer::singleShot(delay, this, poll);
+            };
+            QTimer::singleShot(initialDelay, this, poll);
         });
     });
 

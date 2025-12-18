@@ -2,6 +2,8 @@
 #include <QProcess>
 #include <QMessageBox>
 #include <QDebug>
+#include <QApplication>
+#include <QtConcurrent>
 
 MainFunctions::MainFunctions() {
 }
@@ -9,37 +11,71 @@ MainFunctions::MainFunctions() {
 QString MainFunctions::runCommand(const QString &program, const QStringList &arguments) {
     QProcess process;
     process.start(program, arguments);
-
-    // Wait up to 3 seconds for a response, then fail gracefully
     if (!process.waitForFinished(3000)) {
         return QString();
     }
     return QString::fromUtf8(process.readAllStandardOutput()).trimmed();
 }
 
+MainFunctions::CommandResult MainFunctions::runCommandResult(const QString &program,
+                                                             const QStringList &arguments,
+                                                             int timeoutMs) {
+    QProcess process;
+    process.start(program, arguments);
+
+    CommandResult res;
+    if (!process.waitForFinished(timeoutMs)) {
+        res.timedOut = true;
+        res.exitCode = -1;
+        return res;
+    }
+
+    res.exitCode = process.exitCode();
+    res.out = QString::fromUtf8(process.readAllStandardOutput()).trimmed();
+    res.err = QString::fromUtf8(process.readAllStandardError()).trimmed();
+    return res;
+}
+
+QFuture<MainFunctions::CommandResult> MainFunctions::runCommandAsync(const QString &program,
+                                                                     const QStringList &arguments,
+                                                                     int timeoutMs) {
+    return QtConcurrent::run([=]() {
+        return runCommandResult(program, arguments, timeoutMs);
+    });
+}
+
 void MainFunctions::cliConnect() {
     QString output = runCommand("warp-cli", {"connect"});
+    QWidget *parent = QApplication::activeWindow();
 
-    // Only show error if it fails and output isn't empty (or Success)
     if (!output.contains("Success", Qt::CaseInsensitive) && !output.isEmpty()) {
-        // Check service if connection failed
         if (!isServiceActive()) return;
 
-        QMessageBox::warning(nullptr, "Warp Error", output);
+        QMessageBox::warning(parent, "Warp Error", output);
     }
+}
+
+QFuture<MainFunctions::CommandResult> MainFunctions::cliConnectAsync() {
+    return runCommandAsync("warp-cli", {"connect"}, 15000);
 }
 
 void MainFunctions::cliDisconnect() {
     QString output = runCommand("warp-cli", {"disconnect"});
+    QWidget *parent = QApplication::activeWindow();
 
     if (!output.contains("Success", Qt::CaseInsensitive) && !output.isEmpty()) {
-        QMessageBox::warning(nullptr, "Warp Error", output);
+        QMessageBox::warning(parent, "Warp Error", output);
     }
+}
+
+QFuture<MainFunctions::CommandResult> MainFunctions::cliDisconnectAsync() {
+    return runCommandAsync("warp-cli", {"disconnect"}, 15000);
 }
 
 void MainFunctions::cliRegister() {
     QString output = runCommand("warp-cli", {"registration", "new"});
-    QMessageBox::information(nullptr, "Registration", output);
+    QWidget *parent = QApplication::activeWindow();
+    QMessageBox::information(parent, "Registration", output);
 }
 
 QString MainFunctions::cliStatus() {
@@ -47,26 +83,21 @@ QString MainFunctions::cliStatus() {
 }
 
 bool MainFunctions::isServiceActive() {
-    // QProcess::execute returns 0 on success (Active)
     int exitCode = QProcess::execute("systemctl", {"is-active", "--quiet", "warp-svc"});
 
     if (exitCode == 0) {
         return true;
     }
 
-    QMessageBox::critical(nullptr, "Service Error",
+    QWidget *parent = QApplication::activeWindow();
+    QMessageBox::critical(parent, "Service Error",
                           "The 'warp-svc' service is not running.\n\n"
                           "Please enable it by running:\n"
-                          "sudo systemctl start warp-svc");
+                          "pkexec systemctl start warp-svc");
     return false;
 }
 
 bool MainFunctions::isWarpConnected() {
-    // check specific interface existence using QProcess
-    QProcess process;
-    process.start("ip", {"addr", "show", "CloudflareWARP"});
-    process.waitForFinished(500); // Should be instant
-
-    // If exit code is 0, interface exists. If 1, it does not.
-    return (process.exitCode() == 0);
+    int code = QProcess::execute("ip", {"addr", "show", "CloudflareWARP"});
+    return (code == 0);
 }

@@ -5,7 +5,6 @@
 #include <QSettings>
 #include "mainfunctions.h"
 
-// Forward declarations to speed up compilation
 class QVBoxLayout;
 class QCheckBox;
 class QComboBox;
@@ -19,13 +18,17 @@ public:
 
 private
     slots:
+
+
     
 
     void saveSettings();
 
     void registerNewClient();
 
-    void fixSystemServices();
+    void enableDaemon();
+
+    void disableOfficialTray();
 
 private:
     void setupUI();
@@ -36,10 +39,12 @@ private:
 
     QCheckBox *checkAutoStart;
     QCheckBox *checkAutoConnect;
-    QCheckBox *checkShowOnStart; // <--- NEW CHECKBOX
+    QCheckBox *checkShowOnStart;
+    QCheckBox *checkMinimizeOnUnfocus;
     QComboBox *comboMode;
     QPushButton *btnRegister;
-    QPushButton *btnFixServices;
+    QPushButton *btnEnableDaemon;
+    QPushButton *btnDisableOfficialTray;
     MainFunctions mf;
     QSettings settings;
 };

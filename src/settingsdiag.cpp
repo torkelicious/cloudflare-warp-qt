@@ -12,11 +12,15 @@
 #include <QStandardPaths>
 #include <QTextStream>
 #include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QRegularExpression>
+#include <QCoreApplication>
+#include <QFutureWatcher>
 
 SettingsDiag::SettingsDiag(QWidget *parent)
     : QDialog(parent) {
     setWindowTitle("Settings");
-    resize(320, 400); // Increased height for new option
+    resize(320, 400);
     setupUI();
     loadSettings();
 }
@@ -24,30 +28,34 @@ SettingsDiag::SettingsDiag(QWidget *parent)
 void SettingsDiag::setupUI() {
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
 
-    // General Settings
     QGroupBox *groupGeneral = new QGroupBox("General", this);
     QVBoxLayout *generalLayout = new QVBoxLayout(groupGeneral);
 
     checkAutoStart = new QCheckBox("Start App on System Boot", this);
     checkAutoConnect = new QCheckBox("Auto-Connect WARP on Start", this);
-    checkShowOnStart = new QCheckBox("Show Window on App Start", this); // <--- NEW
+    checkShowOnStart = new QCheckBox("Show Window on App Start", this);
+    checkMinimizeOnUnfocus = new QCheckBox("Minimize the popup on Unfocus", this);
 
     generalLayout->addWidget(checkAutoStart);
     generalLayout->addWidget(checkAutoConnect);
-    generalLayout->addWidget(checkShowOnStart); // <--- Add to layout
+    generalLayout->addWidget(checkShowOnStart);
+    generalLayout->addWidget(checkMinimizeOnUnfocus);
     mainLayout->addWidget(groupGeneral);
 
-    // System Services
     QGroupBox *groupSystem = new QGroupBox("Troubleshooting", this);
     QVBoxLayout *systemLayout = new QVBoxLayout(groupSystem);
 
-    btnFixServices = new QPushButton("Enable Warp Daemon && Kill Official Tray", this);
-    btnFixServices->setToolTip("Requires Root. Enables 'warp-svc' and disables 'warp-taskbar'.");
+    btnEnableDaemon = new QPushButton("Enable Warp Daemon (root)", this);
+    btnEnableDaemon->setToolTip("Requires root: Enables and starts 'warp-svc' system service.");
 
-    systemLayout->addWidget(btnFixServices);
+    btnDisableOfficialTray = new QPushButton("Disable/Kill Official Tray (user)", this);
+    btnDisableOfficialTray->setToolTip(
+        "As user: Disables user unit 'warp-taskbar' and kills process if running.");
+
+    systemLayout->addWidget(btnEnableDaemon);
+    systemLayout->addWidget(btnDisableOfficialTray);
     mainLayout->addWidget(groupSystem);
 
-    // Warp Configuration
     QGroupBox *groupWarp = new QGroupBox("Warp Configuration", this);
     QFormLayout *warpLayout = new QFormLayout(groupWarp);
 
@@ -60,33 +68,53 @@ void SettingsDiag::setupUI() {
     warpLayout->addRow(btnRegister);
     mainLayout->addWidget(groupWarp);
 
-    // Bottom Buttons
-    QPushButton *btnClose = new QPushButton("Close", this);
-    mainLayout->addWidget(btnClose);
+    QHBoxLayout *btnLayout = new QHBoxLayout();
+    QPushButton *btnSave = new QPushButton("Save", this);
+    QPushButton *btnCancel = new QPushButton("Cancel", this);
+    btnLayout->addStretch();
+    btnLayout->addWidget(btnSave);
+    btnLayout->addWidget(btnCancel);
+    mainLayout->addLayout(btnLayout);
 
-    // Connect signals
-    connect(btnClose, &QPushButton::clicked, this, &SettingsDiag::saveSettings);
+    connect(btnSave, &QPushButton::clicked, this, &SettingsDiag::saveSettings);
+    connect(btnCancel, &QPushButton::clicked, this, &SettingsDiag::reject);
     connect(btnRegister, &QPushButton::clicked, this, &SettingsDiag::registerNewClient);
-    connect(btnFixServices, &QPushButton::clicked, this, &SettingsDiag::fixSystemServices);
+    connect(btnEnableDaemon, &QPushButton::clicked, this, &SettingsDiag::enableDaemon);
+    connect(btnDisableOfficialTray, &QPushButton::clicked, this, &SettingsDiag::disableOfficialTray);
 }
 
 void SettingsDiag::loadSettings() {
-    // Load state from QSettings
     checkAutoConnect->setChecked(settings.value("autoConnect", false).toBool());
     checkAutoStart->setChecked(settings.value("autoStart", false).toBool());
-    checkShowOnStart->setChecked(settings.value("showOnStart", false).toBool()); // <--- Load
+    checkShowOnStart->setChecked(settings.value("showOnStart", false).toBool());
+    checkMinimizeOnUnfocus->setChecked(settings.value("minimizeOnUnfocus", true).toBool());
+
+    QString status = mf.runCommand("warp-cli", {"status"});
+    QRegularExpression re("^Mode:\\s*([^\n]+)", QRegularExpression::MultilineOption);
+    QRegularExpressionMatch m = re.match(status);
+    if (m.hasMatch()) {
+        QString mode = m.captured(1).trimmed();
+        int idx = comboMode->findText(mode, Qt::MatchExactly);
+        if (idx >= 0) {
+            comboMode->setCurrentIndex(idx);
+        }
+    }
 }
 
 void SettingsDiag::saveSettings() {
     settings.setValue("autoConnect", checkAutoConnect->isChecked());
     settings.setValue("autoStart", checkAutoStart->isChecked());
-    settings.setValue("showOnStart", checkShowOnStart->isChecked()); // <--- Save
-
+    settings.setValue("showOnStart", checkShowOnStart->isChecked());
+    settings.setValue("minimizeOnUnfocus", checkMinimizeOnUnfocus->isChecked());
     setAutoStart(checkAutoStart->isChecked());
-
-    QString mode = comboMode->currentText();
-    mf.runCommand("warp-cli", {"set-mode", mode});
-
+    QString status = mf.runCommand("warp-cli", {"status"});
+    QRegularExpression re("^Mode:\\s*([^\n]+)", QRegularExpression::MultilineOption);
+    QRegularExpressionMatch m = re.match(status);
+    QString currentMode = m.hasMatch() ? m.captured(1).trimmed() : QString();
+    QString selectedMode = comboMode->currentText();
+    if (!selectedMode.isEmpty() && currentMode.compare(selectedMode, Qt::CaseInsensitive) != 0) {
+        mf.runCommand("warp-cli", {"set-mode", selectedMode});
+    }
     accept();
 }
 
@@ -105,7 +133,14 @@ void SettingsDiag::setAutoStart(bool enable) {
             out << "[Desktop Entry]\n";
             out << "Type=Application\n";
             out << "Name=CloudflareWarpQt\n";
-            out << "Exec=CloudflareWarpQt\n";
+            QString execPath = QCoreApplication::applicationFilePath();
+            execPath.replace('"', "\\\"");
+            const QString quotedExec = QString("\"%1\"").arg(execPath);
+            out << "Exec=" << quotedExec << "\n";
+            out << "TryExec=" << quotedExec << "\n";
+            out << "Icon=cloudflare-warp-qt\n";
+            out << "Terminal=false\n";
+            out << "Categories=Network;Utility;\n";
             out << "X-GNOME-Autostart-enabled=true\n";
             file.close();
         }
@@ -127,23 +162,52 @@ void SettingsDiag::registerNewClient() {
     }
 }
 
-void SettingsDiag::fixSystemServices() {
-    QString cmd = "systemctl enable --now warp-svc && "
-            "(systemctl disable --user --now warp-taskbar || true) && "
-            "(pkill -f warp-taskbar || true)";
+void SettingsDiag::enableDaemon() {
+    auto watcher = new QFutureWatcher<MainFunctions::CommandResult>(this);
+    watcher->setFuture(mf.runCommandAsync("pkexec", {"systemctl", "enable", "--now", "warp-svc"}, 120000));
+    connect(watcher, &QFutureWatcherBase::finished, this, [this, watcher]() {
+        auto res = watcher->future().result();
+        watcher->deleteLater();
+        if (!res.timedOut && res.exitCode == 0) {
+            QMessageBox::information(this, "Success",
+                                     "'warp-svc' system service enabled and started.");
+        } else {
+            QString err = res.err;
+            if (err.isEmpty()) err = res.out;
+            if (err.isEmpty()) err = res.timedOut
+                                         ? "Timed out waiting for authentication or command to finish"
+                                         : "Unknown error";
+            QMessageBox::warning(this, "Operation Failed",
+                                 QString("Failed to enable/start 'warp-svc'.\n\nDetails:\n%1").arg(err));
+        }
+    });
+}
 
-    QProcess process;
-    process.start("pkexec", {"sh", "-c", cmd});
-    process.waitForFinished(-1);
+void SettingsDiag::disableOfficialTray() {
+    auto watcher1 = new QFutureWatcher<MainFunctions::CommandResult>(this);
+    watcher1->setFuture(mf.runCommandAsync("systemctl", {"--user", "disable", "--now", "warp-taskbar"}, 10000));
+    connect(watcher1, &QFutureWatcherBase::finished, this, [this, watcher1]() {
+        auto res1 = watcher1->future().result();
+        watcher1->deleteLater();
 
-    if (process.exitCode() == 0) {
-        QMessageBox::information(this, "Success",
-                                 "Services configured successfully.\n\n"
-                                 "- 'warp-svc' enabled\n"
-                                 "- 'warp-taskbar' disabled/killed");
-    } else {
-        QMessageBox::warning(this, "Operation Cancelled",
-                             "Could not configure services.\n"
-                             "Either the password was incorrect or the action was cancelled.");
-    }
+        auto watcher2 = new QFutureWatcher<MainFunctions::CommandResult>(this);
+        watcher2->setFuture(mf.runCommandAsync("pkill", {"-f", "warp-taskbar"}, 5000));
+        connect(watcher2, &QFutureWatcherBase::finished, this, [this, res1, watcher2]() {
+            auto res2 = watcher2->future().result();
+            watcher2->deleteLater();
+
+            if (!res1.timedOut && (res1.exitCode == 0 || res1.exitCode == 1)) {
+                QMessageBox::information(this, "Success",
+                                         "Official 'warp-taskbar' tray was disabled for this user and any running instance was terminated.");
+            } else {
+                QString err = res1.err;
+                if (err.isEmpty()) err = res1.out;
+                if (err.isEmpty()) err = "Could not communicate with user service manager (it may be unavailable).";
+                QMessageBox::warning(this, "Partial/Failed",
+                                     QString(
+                                         "Tried to disable the user tray.\n\nDetails:\n%1\n\nThe process was also killed if it was running.")
+                                     .arg(err));
+            }
+        });
+    });
 }
