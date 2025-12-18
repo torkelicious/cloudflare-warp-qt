@@ -5,7 +5,7 @@ A lightweight C++ (Qt6) GUI based on the Cloudflare WARP CLI (`warp-cli`) on Lin
 The application provides a system tray icon and a compact control panel for toggling the connection status, managing configuration options, and handling registration.
 
 
-![Badly croppped Screenshot of Application](https://github.com/torkelicious/cloudflare-warp-qt/blob/main/screenshots/app-screenshot.png?raw=true)
+![Screenshot of Application & Settings](https://github.com/torkelicious/cloudflare-warp-qt/blob/main/screenshots/app-screenshot.png?raw=true)
 
 ## Features
 
@@ -54,7 +54,11 @@ I will probably either replace or compliment the current installation scripts wi
 
 The app uses a lock file at `/tmp/warp-qt.lock` to prevent multiple instances. Check your system tray—the icon may be hidden.
 
-### Service issues, or duplicate tray icons
+### Duplicate tray icons
 
 If the official `warp-taskbar` is running, it may create an additional system tray icon and consume unnecessary memory.
-Go to **Settings → Troubleshooting** and click **“Enable Warp Daemon & Kill Official Tray”** to resolve this automatically.
+Go to **Settings → Troubleshooting ** and click **“Disable / Kill Official Tray”** to resolve this.
+
+### Warp Service is not running or enabled
+If the warp-svc is not running, 
+Go to **Settings → Troubleshooting ** and click **“Enable Warp Daemon”** to resolve this.
