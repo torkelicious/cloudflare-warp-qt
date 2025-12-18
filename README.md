@@ -57,8 +57,8 @@ The app uses a lock file at `/tmp/warp-qt.<user>.lock` to prevent multiple insta
 ### Duplicate tray icons
 
 If the official `warp-taskbar` is running, it may create an additional system tray icon and consume unnecessary memory.
-Go to **Settings → Troubleshooting ** and click **“Disable / Kill Official Tray”** to resolve this.
+Go to **Settings → Troubleshooting** and click **“Disable / Kill Official Tray”** to resolve this.
 
 ### Warp Service is not running or enabled
 If the warp-svc is not running, 
-Go to **Settings → Troubleshooting ** and click **“Enable Warp Daemon”** to resolve this.
+Go to **Settings → Troubleshooting** and click **“Enable Warp Daemon”** to resolve this.
