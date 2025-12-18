@@ -10,7 +10,8 @@
 
 int main(int argc, char *argv[]) {
   QApplication a(argc, argv);
-  QApplication::setApplicationName("CloudflareWarpQt");
+  a.setApplicationName("CloudflareWarpQt");
+  a.setOrganizationName("warp-qt");
 
   // Single Instance Lock
   QLockFile lockFile(QDir::temp().absoluteFilePath("warp-qt.lock"));
@@ -46,7 +47,7 @@ int main(int argc, char *argv[]) {
   bool showFromCLI = parser.isSet(showOption);
 
   if (showFromConfig || showFromCLI) {
-      w.show(); // Show window if requested by settings OR command line
+    w.show(); // Show window if requested by settings OR command line
   }
 
   return a.exec();
