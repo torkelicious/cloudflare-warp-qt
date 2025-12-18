@@ -6,7 +6,7 @@
 #include <QDir>
 #include <QLockFile>
 #include <QMessageBox>
-#include <QSettings> // <--- Added include
+#include <QSettings>
 
 int main(int argc, char *argv[]) {
   QApplication a(argc, argv);
