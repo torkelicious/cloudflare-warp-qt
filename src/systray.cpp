@@ -56,6 +56,8 @@ void SysTray::setupTray() {
         popupWidget->showPositioned();
     });
 
+    menu->addAction("Preferences", [this]() { popupWidget->openSettings(); });
+
     menu->addAction("Quit", qApp, &QApplication::quit);
 
     trayIcon->setContextMenu(menu);

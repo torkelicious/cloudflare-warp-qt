@@ -1,140 +1,204 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
-    <class>Widget</class>
-    <widget class="QWidget" name="Widget">
-        <property name="windowModality">
-            <enum>Qt::WindowModality::NonModal</enum>
-        </property>
-        <property name="geometry">
-            <rect>
-                <x>0</x>
-                <y>0</y>
-                <width>310</width>
-                <height>405</height>
-            </rect>
-        </property>
-        <property name="windowTitle">
-            <string>WarpQt</string>
-        </property>
-        <property name="styleSheet">
-            <string notr="true">
-                QWidget#Widget {
-                background-color: #111111;
-                }
-            </string>
-        </property>
-        <layout class="QGridLayout" name="gridLayout_3">
-            <item row="0" column="0">
-                <layout class="QGridLayout" name="gridLayout">
-                    <property name="topMargin">
-                        <number>20</number>
-                    </property>
-                    <property name="bottomMargin">
-                        <number>20</number>
-                    </property>
-                    <item row="0" column="0">
-                        <widget class="QLabel" name="connectionType">
-                            <property name="font">
-                                <font>
-                                    <family>Segoe UI</family>
-                                    <pointsize>32</pointsize>
-                                    <bold>true</bold>
-                                </font>
-                            </property>
-                            <property name="styleSheet">
-                                <string notr="true">
-                                    color: #F48120;
-                                    margin-bottom: 10px;
-                                </string>
-                            </property>
-                            <property name="text">
-                                <string>WARP</string>
-                            </property>
-                            <property name="alignment">
-                                <set>Qt::AlignmentFlag::AlignCenter</set>
-                            </property>
-                        </widget>
-                    </item>
-                    <item row="1" column="0">
-                        <layout class="QHBoxLayout" name="horizontalLayout">
-                            <item>
-                                <spacer name="horizontalSpacer_1">
-                                    <property name="orientation">
-                                        <enum>Qt::Orientation::Horizontal</enum>
-                                    </property>
-                                    <property name="sizeHint" stdset="0">
-                                        <size>
-                                            <width>40</width>
-                                            <height>20</height>
-                                        </size>
-                                    </property>
-                                </spacer>
-                            </item>
-                            <item>
-                                <widget class="QPushButton" name="btn_start">
-                                    <property name="minimumSize">
-                                        <size>
-                                            <width>160</width>
-                                            <height>60</height>
-                                        </size>
-                                    </property>
-                                    <property name="cursor">
-                                        <cursorShape>PointingHandCursor</cursorShape>
-                                    </property>
-                                    <property name="text">
-                                        <string>Connect</string>
-                                    </property>
-                                </widget>
-                            </item>
-                            <item>
-                                <spacer name="horizontalSpacer_2">
-                                    <property name="orientation">
-                                        <enum>Qt::Orientation::Horizontal</enum>
-                                    </property>
-                                    <property name="sizeHint" stdset="0">
-                                        <size>
-                                            <width>40</width>
-                                            <height>20</height>
-                                        </size>
-                                    </property>
-                                </spacer>
-                            </item>
-                        </layout>
-                    </item>
-                    <item row="2" column="0">
-                        <widget class="QLabel" name="connected_status">
-                            <property name="font">
-                                <font>
-                                    <family>Segoe UI</family>
-                                    <pointsize>14</pointsize>
-                                    <bold>true</bold>
-                                </font>
-                            </property>
-                            <property name="styleSheet">
-                                <string notr="true">color: #ffffff; margin-top: 20px;</string>
-                            </property>
-                            <property name="text">
-                                <string>DISCONNECTED</string>
-                            </property>
-                            <property name="alignment">
-                                <set>Qt::AlignmentFlag::AlignCenter</set>
-                            </property>
-                        </widget>
-                    </item>
-                    <item row="3" column="0">
-                        <widget class="QLabel" name="sub_status">
-                            <property name="text">
-                                <string>Your internet is not private</string>
-                            </property>
-                            <property name="alignment">
-                                <set>Qt::AlignmentFlag::AlignCenter</set>
-                            </property>
-                        </widget>
-                    </item>
-                </layout>
-            </item>
-        </layout>
-    </widget>
-    <resources/>
-    <connections/>
+ <class>Widget</class>
+ <widget class="QWidget" name="Widget">
+  <property name="windowModality">
+   <enum>Qt::WindowModality::NonModal</enum>
+  </property>
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>310</width>
+    <height>405</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>WarpQt</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">QWidget#Widget { background-color: #111111; }</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout_3">
+   <item row="1" column="0">
+    <layout class="QGridLayout" name="gridLayout">
+     <property name="topMargin">
+      <number>20</number>
+     </property>
+     <property name="bottomMargin">
+      <number>20</number>
+     </property>
+     <item row="4" column="0">
+      <widget class="QLabel" name="connected_status">
+       <property name="font">
+        <font>
+         <family>Segoe UI</family>
+         <pointsize>14</pointsize>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">color: #ffffff; margin-top: 20px;</string>
+       </property>
+       <property name="text">
+        <string>DISCONNECTED</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignmentFlag::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <layout class="QHBoxLayout" name="headerLayout">
+       <item>
+        <spacer name="horizontalSpacer_Left">
+         <property name="orientation">
+          <enum>Qt::Orientation::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QLabel" name="connectionType">
+         <property name="font">
+          <font>
+           <family>Segoe UI</family>
+           <pointsize>32</pointsize>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">color: #F48120; margin-bottom: 5px;</string>
+         </property>
+         <property name="text">
+          <string>WARP</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignmentFlag::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer_Right">
+         <property name="orientation">
+          <enum>Qt::Orientation::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>10</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </item>
+     <item row="3" column="0">
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <item>
+        <spacer name="horizontalSpacer_1">
+         <property name="orientation">
+          <enum>Qt::Orientation::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btn_start">
+         <property name="minimumSize">
+          <size>
+           <width>160</width>
+           <height>60</height>
+          </size>
+         </property>
+         <property name="cursor">
+          <cursorShape>PointingHandCursor</cursorShape>
+         </property>
+         <property name="text">
+          <string>Connect</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btn_settings">
+         <property name="maximumSize">
+          <size>
+           <width>35</width>
+           <height>35</height>
+          </size>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>16</pointsize>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="cursor">
+          <cursorShape>PointingHandCursor</cursorShape>
+         </property>
+         <property name="toolTip">
+          <string>Settings</string>
+         </property>
+         <property name="layoutDirection">
+          <enum>Qt::LayoutDirection::LeftToRight</enum>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">
+            QPushButton {
+                background-color: transparent;
+                color: #666666;
+                border: none;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                color: #ffffff;
+            }
+          </string>
+         </property>
+         <property name="text">
+          <string>⚙</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Orientation::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </item>
+     <item row="6" column="0">
+      <widget class="QLabel" name="sub_status">
+       <property name="text">
+        <string>Your internet is not private</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignmentFlag::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
 </ui>

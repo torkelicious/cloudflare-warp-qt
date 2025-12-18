@@ -1,10 +1,11 @@
 #ifndef WIDGET_H
 #define WIDGET_H
 
-#include <QWidget>
-#include <QEvent>
 #include <QCloseEvent>
+#include <QEvent>
+#include <QWidget>
 #include "mainfunctions.h"
+#include "settingsdiag.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class Widget; }
@@ -25,21 +26,21 @@ protected:
 
 private slots:
     void on_btn_start_clicked();
+    void on_btn_settings_clicked(); // <--- New Slot
 
 public slots:
     void onConnectionChanged(bool connected);
+    void openSettings();
 
 signals:
     void connectionChanged(bool connected);
 
 private:
     Ui::Widget *ui;
-    MainFunctions mf; // Using PascalCase class
+    MainFunctions mf;
     bool connectedState;
 
     void updateUI();
-    
-    // Made const because they don't modify state
     QString getPrivateHtml() const; 
     QString getNotPrivateHtml() const;
 };

@@ -1,9 +1,10 @@
 #include "widget.h"
-#include "./ui_widget.h"
 #include <QApplication>
 #include <QCursor>
 #include <QScreen>
+#include <QSettings>
 #include <QTimer>
+#include "./ui_widget.h"
 
 Widget::Widget(QWidget *parent)
     : QWidget(parent)
@@ -12,16 +13,34 @@ Widget::Widget(QWidget *parent)
 {
     ui->setupUi(this);
     setFixedSize(310, 405);
-    
     setWindowFlags(Qt::Tool | Qt::WindowStaysOnTopHint);
 
-    // initial check
-    connectedState = mf.isWarpConnected();
+    // Auto Connect check
+    QSettings settings;
+    bool shouldAutoConnect = settings.value("autoConnect", false).toBool();
+    bool actuallyConnected = mf.isWarpConnected();
+
+    if (shouldAutoConnect && !actuallyConnected) {
+        mf.cliConnect();
+        // dont update manually, trust the autoupdate
+    }
+
+    connectedState = actuallyConnected;
     updateUI();
 }
 
 Widget::~Widget() {
     delete ui;
+}
+
+void Widget::openSettings()
+{
+    SettingsDiag dlg(this);
+    dlg.exec();
+}
+
+void Widget::on_btn_settings_clicked() {
+    openSettings();
 }
 
 void Widget::closeEvent(QCloseEvent *event) {
@@ -86,29 +105,25 @@ void Widget::updateUI() {
 void Widget::on_btn_start_clicked() {
     ui->btn_start->setEnabled(false);
 
-    // Visual feedback immediately
     ui->btn_start->setText(connectedState ? "Disconnecting..." : "Connecting...");
     ui->btn_start->setStyleSheet(
         "QPushButton { background-color: #FAAD3F; color: #ffffff; "
         "padding: 15px 32px; border-radius: 20px; font-weight: bold; font-size: 18px; border: none; }");
 
-    QApplication::processEvents(); // Force UI repaint
+    QApplication::processEvents();
 
-    // Logic
     if (!connectedState) {
         mf.cliConnect();
     } else {
         mf.cliDisconnect();
     }
 
-    // waiting for network stack to settle
     QTimer::singleShot(1000, this, [this]() {
         bool reality = mf.isWarpConnected();
         if (reality != connectedState) {
             connectedState = reality;
             emit connectionChanged(connectedState);
         }
-        // always update UI to reset button state/text
         updateUI();
     });
 }

@@ -6,10 +6,7 @@
 #include <QDir>
 #include <QLockFile>
 #include <QMessageBox>
-
-// TODO: implement config menu for mode / account type / registration
-// TODO: config for auto start & autoconnect
-// DONE: Accept cli args to show the widget instead of hiding it
+#include <QSettings> // <--- Added include
 
 int main(int argc, char *argv[]) {
   QApplication a(argc, argv);
@@ -36,7 +33,6 @@ int main(int argc, char *argv[]) {
   parser.process(a);
 
   Widget w;
-
   SysTray tray(&w);
 
   QObject::connect(&tray, &SysTray::connectionChanged, &w,
@@ -44,8 +40,13 @@ int main(int argc, char *argv[]) {
   QObject::connect(&w, &Widget::connectionChanged, &tray,
                    &SysTray::updateStatus);
 
-  if (parser.isSet(showOption)) {
-    w.show();
+  // --- Logic to Show Window on Start ---
+  QSettings settings;
+  bool showFromConfig = settings.value("showOnStart", false).toBool();
+  bool showFromCLI = parser.isSet(showOption);
+
+  if (showFromConfig || showFromCLI) {
+      w.show(); // Show window if requested by settings OR command line
   }
 
   return a.exec();
