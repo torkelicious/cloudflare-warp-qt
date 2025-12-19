@@ -45,12 +45,12 @@ void SettingsDiag::setupUI() {
     QGroupBox *groupSystem = new QGroupBox("Troubleshooting", this);
     QVBoxLayout *systemLayout = new QVBoxLayout(groupSystem);
 
-    btnEnableDaemon = new QPushButton("Enable Warp Daemon (root)", this);
+    btnEnableDaemon = new QPushButton("Enable warp-svc (Warp Daemon)", this);
     btnEnableDaemon->setToolTip("Requires root: Enables and starts 'warp-svc' system service.");
 
-    btnDisableOfficialTray = new QPushButton("Disable/Kill Official Tray (user)", this);
+    btnDisableOfficialTray = new QPushButton("Disable/Kill Official Tray", this);
     btnDisableOfficialTray->setToolTip(
-        "As user: Disables user unit 'warp-taskbar' and kills process if running.");
+        "Disables user unit 'warp-taskbar' and kills process if running, may require root.");
 
     systemLayout->addWidget(btnEnableDaemon);
     systemLayout->addWidget(btnDisableOfficialTray);
@@ -193,28 +193,60 @@ void SettingsDiag::setAutoStart(bool enable) {
 
 void SettingsDiag::disableOfficialTray() {
     auto watcher1 = new QFutureWatcher<MainFunctions::CommandResult>(this);
-    watcher1->setFuture(mf.runCommandAsync("systemctl", {"--user", "disable", "warp-taskbar"}, 10000));
+    watcher1->setFuture(
+        mf.runCommandAsync("systemctl", {"--user", "disable", "warp-taskbar"}, 10000)
+        );
+
     connect(watcher1, &QFutureWatcherBase::finished, this, [this, watcher1]() {
         auto res1 = watcher1->future().result();
         watcher1->deleteLater();
 
         auto watcher2 = new QFutureWatcher<MainFunctions::CommandResult>(this);
-        watcher2->setFuture(mf.runCommandAsync("systemctl", {"--user","stop","warp-taskbar"}, 5000));
+        watcher2->setFuture(
+            mf.runCommandAsync("systemctl", {"--user", "stop", "warp-taskbar"}, 5000)
+            );
+
         connect(watcher2, &QFutureWatcherBase::finished, this, [this, res1, watcher2]() {
-            auto res2 = watcher2->future().result();
             watcher2->deleteLater();
 
-            if (!res1.timedOut && (res1.exitCode == 0 || res1.exitCode == 1)) {
-                QMessageBox::information(this, "Success",
-                                         "Official 'warp-taskbar' tray was disabled for this user and any running instance was terminated.");
+            // Per-user autostart override: always write Hidden=true
+            const QString autostartDir =
+                QStandardPaths::writableLocation(QStandardPaths::ConfigLocation)
+                + "/autostart";
+
+            QDir().mkpath(autostartDir);
+
+            const QString desktopPath =
+                autostartDir + "/com.cloudflare.WarpTaskbar.desktop";
+
+            QFile file(desktopPath);
+            bool ok = file.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text);
+
+            if (ok) {
+                QTextStream out(&file);
+                out <<
+                    "[Desktop Entry]\n"
+                    "Type=Application\n"
+                    "Name=Cloudflare WARP Zero Trust client / Tray Override\n"
+                    "Hidden=true\n";
+                file.close();
+            }
+
+            if (!res1.timedOut &&
+                (res1.exitCode == 0 || res1.exitCode == 1) &&
+                ok) {
+
+                QMessageBox::information(
+                    this,
+                    "Success",
+                    "Warp tray disabled and autostart overridden for this user."
+                    );
             } else {
-                QString err = res1.err;
-                if (err.isEmpty()) err = res1.out;
-                if (err.isEmpty()) err = "Could not communicate with user service manager (it may be unavailable).";
-                QMessageBox::warning(this, "Partial/Failed",
-                                     QString(
-                                         "Tried to disable the user tray.\n\nDetails:\n%1\n\nThe process was also killed if it was running.")
-                                     .arg(err));
+                QMessageBox::warning(
+                    this,
+                    "Partial/Failed",
+                    "User service was handled, but autostart override failed."
+                    );
             }
         });
     });
