@@ -4,27 +4,25 @@ A lightweight C++ (Qt6) GUI based on the Cloudflare WARP CLI (`warp-cli`) on Lin
 
 The application provides a system tray icon and a compact control panel for toggling the connection status, managing configuration options, and handling registration.
 
-
 ![Screenshot of Application & Settings](https://github.com/torkelicious/cloudflare-warp-qt/blob/main/screenshots/app-screenshot.png?raw=true)
 
 ## Features
 
-* **Toggle Connection** – Connect or disconnect directly from the UI or the system tray.
-* **System Tray** – Persistent tray icon with status indication (Connected / Disconnected) and a context menu.
-* **Settings Menu**
-
-  * **Auto-Connect** – Automatically connect to WARP when the application starts.
-  * **Auto-Start** – Add the application to system startup (`~/.config/autostart`).
-  * **Operation Modes** – Switch between `warp`, `doh`, `dot`, etc.
-  * **Registration** – Register a new client via the GUI.
-  * **Service Fixer** – Built-in utility to enable the `warp-svc` daemon and disable the conflicting official `warp-taskbar`.
-  * *The config file can be found at `~/.config/warp-qt/CloudflareWarpQt.conf`*
+- **Toggle Connection** – Connect or disconnect directly from the UI or the system tray.
+- **System Tray** – Persistent tray icon with status indication (Connected / Disconnected) and a context menu.
+- **Settings Menu**
+  - **Auto-Connect** – Automatically connect to WARP when the application starts.
+  - **Auto-Start** – Add the application to system startup (`~/.config/autostart`).
+  - **Operation Modes** – Switch between `warp`, `doh`, `dot`, etc.
+  - **Registration** – Register a new client via the GUI.
+  - **Service Fixer** – Built-in utility to enable the `warp-svc` daemon and disable the conflicting official `warp-taskbar`.
+  - _The config file can be found at `~/.config/warp-qt/CloudflareWarpQt.conf`_
 
 ## Requirements
 
-* **Qt6** (`qt6-base`)
-* **Cloudflare WARP** (e.g. `cloudflare-warp-bin` or another implementation providing `warp-cli`)
-* **CMake** and **GCC/Clang** for building
+- **Qt6** (`qt6-base`)
+- **Cloudflare WARP** (e.g. `cloudflare-warp-bin` or another implementation providing `warp-cli`)
+- **CMake** and **GCC/Clang** for building
 
 ## Build & Install
 
@@ -46,7 +44,7 @@ I will probably either replace or compliment the current installation scripts wi
 
 ## Command-Line Arguments
 
-* `--show` – Launch the application with the window visible (instead of starting minimized to the system tray).
+- `--show` – Launch the application with the window visible (instead of starting minimized to the system tray).
 
 ## Troubleshooting
 
@@ -60,5 +58,6 @@ If the official `warp-taskbar` is running, it may create an additional system tr
 Go to **Settings → Troubleshooting** and click **“Disable / Kill Official Tray”** to resolve this.
 
 ### Warp Service is not running or enabled
-If the warp-svc is not running, 
-Go to **Settings → Troubleshooting** and click **“Enable Warp Daemon”** to resolve this.
+
+If the warp-svc is not running,
+Go to **Settings → Troubleshooting** and click **“Enable warp-svc”** to resolve this.
