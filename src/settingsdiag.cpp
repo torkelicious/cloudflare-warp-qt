@@ -193,13 +193,13 @@ void SettingsDiag::setAutoStart(bool enable) {
 
 void SettingsDiag::disableOfficialTray() {
     auto watcher1 = new QFutureWatcher<MainFunctions::CommandResult>(this);
-    watcher1->setFuture(mf.runCommandAsync("systemctl", {"--user", "disable", "--now", "warp-taskbar"}, 10000));
+    watcher1->setFuture(mf.runCommandAsync("systemctl", {"--user", "disable", "warp-taskbar"}, 10000));
     connect(watcher1, &QFutureWatcherBase::finished, this, [this, watcher1]() {
         auto res1 = watcher1->future().result();
         watcher1->deleteLater();
 
         auto watcher2 = new QFutureWatcher<MainFunctions::CommandResult>(this);
-        watcher2->setFuture(mf.runCommandAsync("pkill", {"-f", "warp-taskbar"}, 5000));
+        watcher2->setFuture(mf.runCommandAsync("systemctl", {"--user","stop","warp-taskbar"}, 5000));
         connect(watcher2, &QFutureWatcherBase::finished, this, [this, res1, watcher2]() {
             auto res2 = watcher2->future().result();
             watcher2->deleteLater();
