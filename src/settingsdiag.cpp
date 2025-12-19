@@ -118,37 +118,6 @@ void SettingsDiag::saveSettings() {
     accept();
 }
 
-void SettingsDiag::setAutoStart(bool enable) {
-    QString configDir = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);
-    QDir dir(configDir);
-    if (!dir.exists("autostart"))
-        dir.mkdir("autostart");
-
-    QString desktopFile = configDir + "/autostart/CloudflareWarpQt.desktop";
-    QFile file(desktopFile);
-
-    if (enable) {
-        if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-            QTextStream out(&file);
-            out << "[Desktop Entry]\n";
-            out << "Type=Application\n";
-            out << "Name=CloudflareWarpQt\n";
-            QString execPath = QCoreApplication::applicationFilePath();
-            execPath.replace('"', "\\\"");
-            const QString quotedExec = QString("\"%1\"").arg(execPath);
-            out << "Exec=" << quotedExec << "\n";
-            out << "TryExec=" << quotedExec << "\n";
-            out << "Icon=cloudflare-warp-qt\n";
-            out << "Terminal=false\n";
-            out << "Categories=Network;Utility;\n";
-            out << "X-GNOME-Autostart-enabled=true\n";
-            file.close();
-        }
-    } else {
-        if (file.exists())
-            file.remove();
-    }
-}
 
 void SettingsDiag::registerNewClient() {
     auto reply = QMessageBox::question(
@@ -174,13 +143,52 @@ void SettingsDiag::enableDaemon() {
         } else {
             QString err = res.err;
             if (err.isEmpty()) err = res.out;
-            if (err.isEmpty()) err = res.timedOut
-                                         ? "Timed out waiting for authentication or command to finish"
-                                         : "Unknown error";
+            if (err.isEmpty())
+                err = res.timedOut
+                          ? "Timed out waiting for authentication or command to finish"
+                          : "Unknown error";
             QMessageBox::warning(this, "Operation Failed",
                                  QString("Failed to enable/start 'warp-svc'.\n\nDetails:\n%1").arg(err));
         }
     });
+}
+
+void SettingsDiag::setAutoStart(bool enable) {
+    QString configDir = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);
+    QDir dir(configDir);
+    if (!dir.exists("autostart"))
+        dir.mkdir("autostart");
+
+    QString desktopFile = configDir + "/autostart/CloudflareWarpQt.desktop";
+    QFile file(desktopFile);
+
+    if (enable) {
+        if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+            QTextStream out(&file);
+            out << "[Desktop Entry]\n";
+            out << "Categories=Network;Security;Utility;Qt;\n";
+            out << "Comment=Unofficial Qt GUI for Cloudflare Warp\n";
+            out << "Exec=CloudflareWarpQt\n";
+            out << "GenericName=WARP Client\n";
+            out << "Icon=cloudflare-warp-qt\n";
+            out << "Keywords=vpn;dns;1.1.1.1;internet;privacy;security;cloudflare;\n";
+            out << "MimeType=\n";
+            out << "Name=Cloudflare Warp Qt\n";
+            out << "Path=\n";
+            out << "StartupNotify=true\n";
+            out << "Terminal=false\n";
+            out << "TerminalOptions=\n";
+            out << "Type=Application\n";
+            out << "Version=1.5\n";
+            out << "X-GNOME-UsesNotifications=true\n";
+            out << "X-KDE-SubstituteUID=false\n";
+            out << "X-KDE-Username=\n";
+            file.close();
+        }
+    } else {
+        if (file.exists())
+            file.remove();
+    }
 }
 
 void SettingsDiag::disableOfficialTray() {
