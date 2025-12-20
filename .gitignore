@@ -50,10 +50,9 @@ CMakeLists.txt.user*
 *.autosave
 
 # trash
-/.idea
+.idea/
 .vscode/
-
-compile_commands.json
+.qtcreator/
 
 .DS_Store
 Thumbs.db
