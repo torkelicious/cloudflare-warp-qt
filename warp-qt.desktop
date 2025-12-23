@@ -2,7 +2,7 @@
 [Desktop Entry]
 Categories=Network;Security;Utility;Qt;
 Comment=Unofficial Qt GUI for Cloudflare Warp
-Exec=CloudflareWarpQt
+Exec=cloudflare-warp-qt
 GenericName=WARP Client
 Icon=cloudflare-warp-qt
 Keywords=vpn;dns;1.1.1.1;internet;privacy;security;cloudflare;
