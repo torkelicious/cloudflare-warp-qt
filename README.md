@@ -31,6 +31,7 @@ You can use the provided `build_install.sh` script to compile and install the ap
 ```bash
 chmod +x build_install.sh && ./build_install.sh
 ```
+the produced binary name will be cloudflare-warp-qt
 
 ## Uninstall
 
