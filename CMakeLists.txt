@@ -1,10 +1,11 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(CloudflareWarpQt VERSION 0.1 LANGUAGES CXX)
+project(cloudflare-warp-qt VERSION 0.1 LANGUAGES CXX)
 
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -12,55 +13,56 @@ find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets Concurrent)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Concurrent)
 
 set(PROJECT_SOURCES
-        src/main.cpp
-        src/widget.cpp
-        src/widget.h
-        src/widget.ui
-        src/mainfunctions.cpp
-        src/mainfunctions.h
-        src/systray.cpp
-        src/systray.h
-        src/settingsdiag.cpp
-        src/settingsdiag.h
-        resources/resources.qrc
+    src/main.cpp
+    src/widget.cpp
+    src/widget.h
+    src/widget.ui
+    src/mainfunctions.cpp
+    src/mainfunctions.h
+    src/systray.cpp
+    src/systray.h
+    src/settingsdiag.cpp
+    src/settingsdiag.h
+    resources/resources.qrc
 )
 
-if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
-    qt_add_executable(CloudflareWarpQt MANUAL_FINALIZATION ${PROJECT_SOURCES})
+if(QT_VERSION_MAJOR GREATER_EQUAL 6)
+  qt_add_executable(${PROJECT_NAME} MANUAL_FINALIZATION ${PROJECT_SOURCES})
 else()
-    add_executable(CloudflareWarpQt ${PROJECT_SOURCES})
+  add_executable(${PROJECT_NAME} ${PROJECT_SOURCES})
 endif()
 
-target_link_libraries(CloudflareWarpQt PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Concurrent)
-target_include_directories(CloudflareWarpQt PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+set_target_properties(${PROJECT_NAME}
+  PROPERTIES
+    OUTPUT_NAME ${PROJECT_NAME}
+)
 
-# INSTALLATION
-option(ENABLE_INSTALL "Enable installation rules" OFF)
+target_link_libraries(${PROJECT_NAME}
+    PRIVATE
+        Qt${QT_VERSION_MAJOR}::Widgets
+        Qt${QT_VERSION_MAJOR}::Concurrent
+)
 
-if(ENABLE_INSTALL)
-    message(STATUS "Installation rules ENABLED")
-    include(GNUInstallDirs)
+target_include_directories(${PROJECT_NAME}
+    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
 
-    # Install Binary
-    install(TARGETS CloudflareWarpQt
-        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-    )
+include(GNUInstallDirs)
 
-    # Install Desktop File
-    install(FILES warp-qt.desktop
-        DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/applications
-        RENAME CloudflareWarpQt.desktop
-    )
+install(TARGETS ${PROJECT_NAME}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
 
-     # Install Icon for the Launcher
-     install(FILES resources/app_icon.png
-         DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/pixmaps
-         RENAME cloudflare-warp-qt.png
-     )
-else()
-    message(STATUS "Installation rules DISABLED")
-endif()
+install(FILES warp-qt.desktop
+    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/applications
+    RENAME ${PROJECT_NAME}.desktop
+)
+
+install(FILES resources/app_icon.png
+    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/256x256/apps
+    RENAME ${PROJECT_NAME}.png
+)
 
 if(QT_VERSION_MAJOR EQUAL 6)
-    qt_finalize_executable(CloudflareWarpQt)
+  qt_finalize_executable(${PROJECT_NAME})
 endif()

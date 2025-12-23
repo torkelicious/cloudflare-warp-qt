@@ -1,51 +1,41 @@
 #!/bin/bash
-
 set -e
 
-APP_NAME="CloudflareWarpQt"
-BINARY_NAME="CloudflareWarpQt"
-DESKTOP_FILE="CloudflareWarpQt.desktop"
-ICON_FILE="cloudflare-warp-qt.png"
+APP_NAME="cloudflare-warp-qt"
+BINARY_NAME="${APP_NAME}"
+DESKTOP_FILE="${APP_NAME}.desktop"
+ICON_FILE="${APP_NAME}.png"
 
 echo "Uninstalling $APP_NAME..."
 
 # Remove the Binary
-if [ -f "/usr/bin/$BINARY_NAME" ]; then
-    echo "Removing binary from /usr/bin..."
-    sudo rm -f "/usr/bin/$BINARY_NAME"
-fi
+for BIN_DIR in "/usr/bin" "/usr/local/bin"; do
+  if [ -f "$BIN_DIR/$BINARY_NAME" ]; then
+    echo "Removing binary from $BIN_DIR..."
+    sudo rm -f "$BIN_DIR/$BINARY_NAME"
+  fi
+done
 
-if [ -f "/usr/local/bin/$BINARY_NAME" ]; then
-    echo "Removing binary from /usr/local/bin..."
-    sudo rm -f "/usr/local/bin/$BINARY_NAME"
-fi
+# Remove Desktop Entry
+for DESKTOP_DIR in "/usr/share/applications" "/usr/local/share/applications"; do
+  if [ -f "$DESKTOP_DIR/$DESKTOP_FILE" ]; then
+    echo "Removing desktop entry from $DESKTOP_DIR..."
+    sudo rm -f "$DESKTOP_DIR/$DESKTOP_FILE"
+  fi
+done
 
-# Remove desktop entry
-if [ -f "/usr/share/applications/$DESKTOP_FILE" ]; then
-    echo "Removing desktop entry..."
-    sudo rm -f "/usr/share/applications/$DESKTOP_FILE"
-fi
+# Remove Icon
+for ICON_DIR in "/usr/share/icons/hicolor/256x256/apps" "/usr/local/share/icons/hicolor/256x256/apps"; do
+  if [ -f "$ICON_DIR/$ICON_FILE" ]; then
+    echo "Removing icon from $ICON_DIR..."
+    sudo rm -f "$ICON_DIR/$ICON_FILE"
+  fi
+done
 
-if [ -f "/usr/local/share/applications/$DESKTOP_FILE" ]; then
-    echo "Removing local desktop entry..."
-    sudo rm -f "/usr/local/share/applications/$DESKTOP_FILE"
-fi
-
-# Remove icon file
-if [ -f "/usr/share/pixmaps/$ICON_FILE" ]; then
-    echo "Removing icon..."
-    sudo rm -f "/usr/share/pixmaps/$ICON_FILE"
-fi
-
-if [ -f "/usr/local/share/pixmaps/$ICON_FILE" ]; then
-    echo "Removing local icon..."
-    sudo rm -f "/usr/local/share/pixmaps/$ICON_FILE"
-fi
-
-# Update dekstop db
+# Update desktop database
 echo "Updating desktop database..."
 if command -v update-desktop-database >/dev/null 2>&1; then
-    sudo update-desktop-database
+  sudo update-desktop-database
 fi
 
 echo "$APP_NAME has been uninstalled"
