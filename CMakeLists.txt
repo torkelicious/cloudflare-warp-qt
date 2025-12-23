@@ -53,7 +53,7 @@ install(TARGETS ${PROJECT_NAME}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
-install(FILES warp-qt.desktop
+install(FILES resources/cloudflare-warp-qt.desktop
     DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/applications
     RENAME ${PROJECT_NAME}.desktop
 )

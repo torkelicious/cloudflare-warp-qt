@@ -18,14 +18,16 @@
 #include <QFutureWatcher>
 
 SettingsDiag::SettingsDiag(QWidget *parent)
-    : QDialog(parent) {
+    : QDialog(parent)
+{
     setWindowTitle("Settings");
     resize(320, 400);
     setupUI();
     loadSettings();
 }
 
-void SettingsDiag::setupUI() {
+void SettingsDiag::setupUI()
+{
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
 
     QGroupBox *groupGeneral = new QGroupBox("General", this);
@@ -83,7 +85,8 @@ void SettingsDiag::setupUI() {
     connect(btnDisableOfficialTray, &QPushButton::clicked, this, &SettingsDiag::disableOfficialTray);
 }
 
-void SettingsDiag::loadSettings() {
+void SettingsDiag::loadSettings()
+{
     checkAutoConnect->setChecked(settings.value("autoConnect", false).toBool());
     checkAutoStart->setChecked(settings.value("autoStart", false).toBool());
     checkShowOnStart->setChecked(settings.value("showOnStart", false).toBool());
@@ -92,16 +95,19 @@ void SettingsDiag::loadSettings() {
     QString status = mf.runCommand("warp-cli", {"status"});
     QRegularExpression re("^Mode:\\s*([^\n]+)", QRegularExpression::MultilineOption);
     QRegularExpressionMatch m = re.match(status);
-    if (m.hasMatch()) {
+    if (m.hasMatch())
+    {
         QString mode = m.captured(1).trimmed();
         int idx = comboMode->findText(mode, Qt::MatchExactly);
-        if (idx >= 0) {
+        if (idx >= 0)
+        {
             comboMode->setCurrentIndex(idx);
         }
     }
 }
 
-void SettingsDiag::saveSettings() {
+void SettingsDiag::saveSettings()
+{
     settings.setValue("autoConnect", checkAutoConnect->isChecked());
     settings.setValue("autoStart", checkAutoStart->isChecked());
     settings.setValue("showOnStart", checkShowOnStart->isChecked());
@@ -112,29 +118,33 @@ void SettingsDiag::saveSettings() {
     QRegularExpressionMatch m = re.match(status);
     QString currentMode = m.hasMatch() ? m.captured(1).trimmed() : QString();
     QString selectedMode = comboMode->currentText();
-    if (!selectedMode.isEmpty() && currentMode.compare(selectedMode, Qt::CaseInsensitive) != 0) {
+    if (!selectedMode.isEmpty() && currentMode.compare(selectedMode, Qt::CaseInsensitive) != 0)
+    {
         mf.runCommand("warp-cli", {"set-mode", selectedMode});
     }
     accept();
 }
 
-
-void SettingsDiag::registerNewClient() {
+void SettingsDiag::registerNewClient()
+{
     auto reply = QMessageBox::question(
         this,
         "Register",
         "This will re-register the client and might reset your license key. Continue?",
         QMessageBox::Yes | QMessageBox::No);
 
-    if (reply == QMessageBox::Yes) {
+    if (reply == QMessageBox::Yes)
+    {
         mf.cliRegister();
     }
 }
 
-void SettingsDiag::enableDaemon() {
+void SettingsDiag::enableDaemon()
+{
     auto watcher = new QFutureWatcher<MainFunctions::CommandResult>(this);
     watcher->setFuture(mf.runCommandAsync("pkexec", {"systemctl", "enable", "--now", "warp-svc"}, 120000));
-    connect(watcher, &QFutureWatcherBase::finished, this, [this, watcher]() {
+    connect(watcher, &QFutureWatcherBase::finished, this, [this, watcher]()
+            {
         auto res = watcher->future().result();
         watcher->deleteLater();
         if (!res.timedOut && res.exitCode == 0) {
@@ -149,55 +159,63 @@ void SettingsDiag::enableDaemon() {
                           : "Unknown error";
             QMessageBox::warning(this, "Operation Failed",
                                  QString("Failed to enable/start 'warp-svc'.\n\nDetails:\n%1").arg(err));
-        }
-    });
+        } });
 }
 
-void SettingsDiag::setAutoStart(bool enable) {
-    QString configDir = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);
-    QDir dir(configDir);
-    if (!dir.exists("autostart"))
-        dir.mkdir("autostart");
+void SettingsDiag::setAutoStart(bool enable)
+{
+    // (~/.config/autostart)
+    const QString autostartDir = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation) + "/autostart";
+    QDir().mkpath(autostartDir);
 
-    QString desktopFile = configDir + "/autostart/CloudflareWarpQt.desktop";
-    QFile file(desktopFile);
+    const QString desktopPath = autostartDir + "/cloudflare-warp-qt.desktop";
 
-    if (enable) {
-        if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-            QTextStream out(&file);
-            out << "[Desktop Entry]\n";
-            out << "Categories=Network;Security;Utility;Qt;\n";
-            out << "Comment=Unofficial Qt GUI for Cloudflare Warp\n";
-            out << "Exec=CloudflareWarpQt\n";
-            out << "GenericName=WARP Client\n";
-            out << "Icon=cloudflare-warp-qt\n";
-            out << "Keywords=vpn;dns;1.1.1.1;internet;privacy;security;cloudflare;\n";
-            out << "MimeType=\n";
-            out << "Name=Cloudflare Warp Qt\n";
-            out << "Path=\n";
-            out << "StartupNotify=true\n";
-            out << "Terminal=false\n";
-            out << "TerminalOptions=\n";
-            out << "Type=Application\n";
-            out << "Version=1.5\n";
-            out << "X-GNOME-UsesNotifications=true\n";
-            out << "X-KDE-SubstituteUID=false\n";
-            out << "X-KDE-Username=\n";
-            file.close();
+    if (enable)
+    {
+        QFile resFile(":/cloudflare-warp-qt.desktop");
+        if (!resFile.open(QIODevice::ReadOnly))
+        {
+            qWarning() << "Failed to open /resources desktop file";
+            return;
         }
-    } else {
+
+        QFile outFile(desktopPath);
+        if (!outFile.open(QIODevice::WriteOnly | QIODevice::Truncate))
+        {
+            qWarning() << "Failed to write desktop file to autostart";
+            return;
+        }
+
+        outFile.write(resFile.readAll());
+        outFile.close();
+        resFile.close();
+
+        // make the desktop file executable
+        QFile::Permissions perms = outFile.permissions();
+        perms |= QFileDevice::ExeOwner | QFileDevice::ExeGroup | QFileDevice::ExeOther;
+        outFile.setPermissions(perms);
+    }
+    else
+    {
+        QFile file(desktopPath);
         if (file.exists())
-            file.remove();
+        {
+            if (!file.remove())
+            {
+                qWarning() << "Failed to remove autostart desktop file!";
+            }
+        }
     }
 }
 
-void SettingsDiag::disableOfficialTray() {
+void SettingsDiag::disableOfficialTray()
+{
     auto watcher1 = new QFutureWatcher<MainFunctions::CommandResult>(this);
     watcher1->setFuture(
-        mf.runCommandAsync("systemctl", {"--user", "disable", "warp-taskbar"}, 10000)
-        );
+        mf.runCommandAsync("systemctl", {"--user", "disable", "warp-taskbar"}, 10000));
 
-    connect(watcher1, &QFutureWatcherBase::finished, this, [this, watcher1]() {
+    connect(watcher1, &QFutureWatcherBase::finished, this, [this, watcher1]()
+            {
         auto res1 = watcher1->future().result();
         watcher1->deleteLater();
 
@@ -248,6 +266,5 @@ void SettingsDiag::disableOfficialTray() {
                     "User service was handled, but autostart override failed."
                     );
             }
-        });
-    });
+        }); });
 }

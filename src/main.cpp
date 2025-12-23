@@ -15,6 +15,7 @@ int main(int argc, char *argv[]) {
     a.setOrganizationName("warp-qt");
     //a.setApplicationVersion("1.0");
     // I feel this application is too early for versioning, this is here so i can put it later (i.e so i dont forget)
+    // while cmake still has a versioning number im too lazy to care atp
     a.setQuitOnLastWindowClosed(false);
 
     const QString user = QString::fromLocal8Bit(qgetenv("USER"));
