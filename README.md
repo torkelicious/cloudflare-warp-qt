@@ -4,8 +4,7 @@ A lightweight C++ (Qt6) GUI based on the Cloudflare WARP CLI (`warp-cli`) on Lin
 
 The application provides a system tray icon and a compact control panel for toggling the connection status, managing configuration options, and handling registration.
 
-![Screenshot of Application main menu](https://github.com/torkelicious/cloudflare-warp-qt/blob/main/screenshots/widget-ui.png)
-![Screenshot of Application settings](https://github.com/torkelicious/cloudflare-warp-qt/blob/main/screenshots/settings-diag.png)
+![Screenshot of Application main menu](https://github.com/torkelicious/cloudflare-warp-qt/blob/main/screenshots/widget-ui.png) ![Screenshot of Application settings](https://github.com/torkelicious/cloudflare-warp-qt/blob/main/screenshots/settings-diag.png)
 
 ## Features
 
@@ -32,6 +31,7 @@ You can use the provided `build_install.sh` script to compile and install the ap
 ```bash
 chmod +x build_install.sh && ./build_install.sh
 ```
+the produced binary name will be cloudflare-warp-qt
 
 ## Uninstall
 
