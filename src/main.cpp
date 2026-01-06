@@ -14,6 +14,7 @@ int main(int argc, char *argv[]) {
     // turn off unnecessary features 
     QCoreApplication::setAttribute(Qt::AA_DontCreateNativeWidgetSiblings);
     QCoreApplication::setAttribute(Qt::AA_DisableShaderDiskCache);
+    QCoreApplication::setAttribute(Qt::AA_UseSoftwareOpenGL);  // Force software rendering
 
     QApplication a(argc, argv);
 
