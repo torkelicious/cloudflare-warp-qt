@@ -1,30 +1,50 @@
 #include "widget.h"
+#include "settingsdiag.h"
 #include <QApplication>
 #include <QCursor>
 #include <QScreen>
 #include <QSettings>
-#include <QTimer>
 #include <QFutureWatcher>
 #include "./ui_widget.h"
 
-Widget::Widget(QWidget *parent)
+static const int kPollDelays[] = {500, 1000, 2000, 3000, 4000, 5000};
+static constexpr int kPollDelaysCount = sizeof(kPollDelays) / sizeof(kPollDelays[0]);
+
+// Cached HTML strings
+static const QString kPrivateHtml = QStringLiteral(
+    "<html><body><p><span style='font-size:11pt; color:#b0b0b0;'>Your "
+    "internet is </span><span style='font-size:11pt; font-weight:600; "
+    "color:#F48120;'>private</span></p></body></html>");
+static const QString kNotPrivateHtml = QStringLiteral(
+    "<html><body><p><span style='font-size:11pt; color:#b0b0b0;'>Your "
+    "internet is </span><span style='font-size:11pt; font-weight:600; "
+    "color:#ffffff;'>not private</span></p></body></html>");
+
+Widget::Widget(MainFunctions *mf, QWidget *parent)
     : QWidget(parent)
       , ui(new Ui::Widget)
+      , mf(mf)
       , connectedState(false)
       , shouldUnfocus(false)
-      , pendingState(TransitionState::None) {
+      , pendingState(TransitionState::None)
+      , pollTimer(new QTimer(this))
+      , expectedState(false)
+      , pollAttempt(0) {
     ui->setupUi(this);
     setFixedSize(310, 405);
     setWindowFlags(Qt::Tool | Qt::WindowStaysOnTopHint);
+
+    pollTimer->setSingleShot(true);
+    connect(pollTimer, &QTimer::timeout, this, &Widget::pollConnectionState);
 
     refreshSettings();
 
     QSettings settings;
     bool shouldAutoConnect = settings.value("autoConnect", false).toBool();
-    bool actuallyConnected = mf.isWarpConnected();
+    bool actuallyConnected = mf->isWarpConnected();
 
     if (shouldAutoConnect && !actuallyConnected) {
-        mf.cliConnect();
+        mf->cliConnect();
     }
 
     connectedState = actuallyConnected;
@@ -41,7 +61,7 @@ void Widget::refreshSettings() {
 }
 
 void Widget::openSettings() {
-    SettingsDiag dlg(this);
+    SettingsDiag dlg(mf, this);
     dlg.exec();
     refreshSettings();
 }
@@ -51,8 +71,9 @@ void Widget::on_btn_settings_clicked() {
 }
 
 void Widget::closeEvent(QCloseEvent *event) {
-    hide();
-    event->ignore();
+    setAttribute(Qt::WA_DeleteOnClose, true);
+    event->accept();
+    deleteLater();
 }
 
 bool Widget::event(QEvent *event) {
@@ -139,43 +160,38 @@ void Widget::updateUI() {
     }
 }
 
+void Widget::pollConnectionState() {
+    bool reality = mf->isWarpConnected();
+
+    if (reality == expectedState || pollAttempt >= kPollDelaysCount) {
+        connectedState = reality;
+        setPending(TransitionState::None);
+        emit connectionChanged(connectedState);
+        updateUI();
+        return;
+    }
+
+    int delay = kPollDelays[pollAttempt++];
+    pollTimer->start(delay);
+}
+
 void Widget::on_btn_start_clicked() {
     setPending(connectedState ? TransitionState::Disconnecting : TransitionState::Connecting);
     updateUI();
 
     auto watcher = new QFutureWatcher<MainFunctions::CommandResult>(this);
     if (!connectedState) {
-        watcher->setFuture(mf.cliConnectAsync());
+        watcher->setFuture(mf->cliConnectAsync());
     } else {
-        watcher->setFuture(mf.cliDisconnectAsync());
+        watcher->setFuture(mf->cliDisconnectAsync());
     }
 
     connect(watcher, &QFutureWatcherBase::finished, this, [this, watcher]() {
         watcher->deleteLater();
-        const bool expected = !connectedState; // true when connecting, false when disconnecting
-        int attempt = 0;
-        const int initialDelay = expected ? 2000 : 800; // wait a bit before first check
-        std::function<void()> poll = [this, expected, &attempt, &poll]() mutable {
-            bool reality = mf.isWarpConnected();
-            if (reality == expected) {
-                connectedState = reality;
-                setPending(TransitionState::None);
-                emit connectionChanged(connectedState);
-                updateUI();
-                return;
-            }
-            static const int delays[] = {500, 1000, 2000, 3000, 4000, 5000};
-            if (attempt >= int(sizeof(delays) / sizeof(delays[0]))) {
-                connectedState = reality;
-                setPending(TransitionState::None);
-                emit connectionChanged(connectedState);
-                updateUI();
-                return;
-            }
-            int delay = delays[attempt++];
-            QTimer::singleShot(delay, this, poll);
-        };
-        QTimer::singleShot(initialDelay, this, poll);
+        expectedState = !connectedState;
+        pollAttempt = 0;
+        const int initialDelay = expectedState ? 2000 : 800;
+        pollTimer->start(initialDelay);
     });
 }
 
@@ -192,13 +208,9 @@ void Widget::setPending(TransitionState state) {
 }
 
 QString Widget::getPrivateHtml() const {
-    return "<html><body><p><span style='font-size:11pt; color:#b0b0b0;'>Your "
-            "internet is </span><span style='font-size:11pt; font-weight:600; "
-            "color:#F48120;'>private</span></p></body></html>";
+    return kPrivateHtml;
 }
 
 QString Widget::getNotPrivateHtml() const {
-    return "<html><body><p><span style='font-size:11pt; color:#b0b0b0;'>Your "
-            "internet is </span><span style='font-size:11pt; font-weight:600; "
-            "color:#ffffff;'>not private</span></p></body></html>";
+    return kNotPrivateHtml;
 }

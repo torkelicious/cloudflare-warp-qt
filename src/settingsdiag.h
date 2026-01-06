@@ -14,7 +14,7 @@ class SettingsDiag : public QDialog {
     Q_OBJECT
 
 public:
-    explicit SettingsDiag(QWidget *parent = nullptr);
+    explicit SettingsDiag(MainFunctions *mf, QWidget *parent = nullptr);
 
 private
     slots:
@@ -45,7 +45,7 @@ private:
     QPushButton *btnRegister;
     QPushButton *btnEnableDaemon;
     QPushButton *btnDisableOfficialTray;
-    MainFunctions mf;
+    MainFunctions *mf;
     QSettings settings;
 };
 

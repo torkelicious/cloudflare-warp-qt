@@ -3,10 +3,13 @@
 
 #include <QString>
 #include <QFuture>
+#include <QObject>
 
-class MainFunctions {
+class MainFunctions : public QObject {
+    Q_OBJECT
+
 public:
-    MainFunctions();
+    explicit MainFunctions(QObject *parent = nullptr);
 
     struct CommandResult {
         int exitCode = -1;
@@ -37,9 +40,24 @@ public:
 
     QString cliStatus();
 
+    QFuture<CommandResult> cliStatusAsync(int timeoutMs = 3000);
+
     bool isServiceActive();
 
     bool isWarpConnected();
+
+    signals:
+
+
+    
+
+    void errorOccurred(const QString &title, const QString &message);
+
+    void infoOccurred(const QString &title, const QString &message);
+
+private:
+    bool isConnecting = false;
+    bool isDisconnecting = false;
 };
 
 #endif // MAINFUNCTIONS_H

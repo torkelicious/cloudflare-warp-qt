@@ -4,8 +4,10 @@
 #include <QCloseEvent>
 #include <QEvent>
 #include <QWidget>
+#include <QTimer>
 #include "mainfunctions.h"
-#include "settingsdiag.h"
+
+class SettingsDiag;
 
 QT_BEGIN_NAMESPACE
 
@@ -19,7 +21,7 @@ class Widget : public QWidget {
     Q_OBJECT
 
 public:
-    explicit Widget(QWidget *parent = nullptr);
+    explicit Widget(MainFunctions *mf, QWidget *parent = nullptr);
 
     ~Widget();
 
@@ -31,29 +33,49 @@ protected:
     bool event(QEvent *event) override;
 
 private
-slots:
+    slots:
+
+
+    
+
     void on_btn_start_clicked();
 
     void on_btn_settings_clicked();
 
 public
-slots:
+    slots:
+
+
+    
+
     void onConnectionChanged(bool connected);
 
     void openSettings();
 
-signals:
+    signals:
+
+
+    
+
     void connectionChanged(bool connected);
 
 private:
     enum class TransitionState { None, Connecting, Disconnecting };
 
     Ui::Widget *ui;
-    MainFunctions mf;
+    MainFunctions *mf;
     bool connectedState;
     bool shouldUnfocus;
     TransitionState pendingState;
 
+    // Polling state for connection checks
+    QTimer *pollTimer;
+    bool expectedState;
+    int pollAttempt;
+
+    void pollConnectionState();
+
+private:
     void refreshSettings();
 
     void updateUI();

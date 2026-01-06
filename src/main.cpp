@@ -8,9 +8,19 @@
 #include <QMessageBox>
 #include <QSettings>
 #include <QStandardPaths>
+#include <QThreadPool>
 
 int main(int argc, char *argv[]) {
+    // turn off unnecessary features 
+    QCoreApplication::setAttribute(Qt::AA_DontCreateNativeWidgetSiblings);
+    QCoreApplication::setAttribute(Qt::AA_DisableShaderDiskCache);
+
     QApplication a(argc, argv);
+
+    // thread pool 
+    QThreadPool::globalInstance()->setMaxThreadCount(1);
+    QThreadPool::globalInstance()->setExpiryTimeout(3000);
+
     a.setApplicationName("CloudflareWarpQt");
     a.setOrganizationName("warp-qt");
     //a.setApplicationVersion("1.0");
@@ -38,20 +48,16 @@ int main(int argc, char *argv[]) {
     parser.addOption(showOption);
     parser.process(a);
 
-    Widget w;
-    SysTray tray(&w);
-
-    QObject::connect(&tray, &SysTray::connectionChanged, &w,
-                     &Widget::onConnectionChanged);
-    QObject::connect(&w, &Widget::connectionChanged, &tray,
-                     &SysTray::updateStatus);
+    MainFunctions mainFuncs;
+    SysTray tray(&mainFuncs);
+    tray.setupTray();
 
     QSettings settings;
     bool showFromConfig = settings.value("showOnStart", false).toBool();
     bool showFromCLI = parser.isSet(showOption);
 
     if (showFromConfig || showFromCLI) {
-        w.show();
+        tray.ensureWidget()->show();
     }
 
     return a.exec();
