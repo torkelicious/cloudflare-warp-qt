@@ -117,7 +117,7 @@ void Widget::updateUI() {
     ui->btn_start->setEnabled(true);
 
     if (connectedState) {
-        ui->btn_start->setText("Connected");
+        ui->btn_start->setText("Disconnect");
         ui->connected_status->setText("CONNECTED");
         ui->connected_status->setStyleSheet("color: #F48120; font-weight: bold;");
         ui->sub_status->setText(getPrivateHtml());
@@ -127,7 +127,7 @@ void Widget::updateUI() {
             "padding: 15px 32px; border-radius: 20px; font-weight: bold; font-size: 18px; border: none; } "
             "QPushButton:hover { background-color: #FAAD3F; }");
     } else {
-        ui->btn_start->setText("Disconnected");
+        ui->btn_start->setText("Connect");
         ui->connected_status->setText("DISCONNECTED");
         ui->connected_status->setStyleSheet("color: #ffffff; font-weight: bold;");
         ui->sub_status->setText(getNotPrivateHtml());
