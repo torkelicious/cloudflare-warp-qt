@@ -62,5 +62,5 @@ Thumbs.db
 /appimage/appimage-build/
 /appimage/squashfs-root/
 appimage/AppDir.squashfs
-appimage/AppDir
-appimage/build
+appimage/AppDir/
+appimage/build/
