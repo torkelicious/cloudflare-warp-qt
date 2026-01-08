@@ -49,6 +49,15 @@ CMakeLists.txt.user*
 *creator.user*
 *.autosave
 
+# appimage stuff
+/appimage/build/
+/appimage/AppDir/
+/appimage/appimage-build/
+/appimage/*.AppImage
+/appimage/*.zsync
+/appimage/squashfs-root/
+
+
 # trash
 .qt/
 .idea/
