@@ -1,0 +1,19 @@
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Categories=Network;Security;Utility;Qt;
+Comment=Unofficial Qt GUI for Cloudflare Warp
+Exec=cloudflare-warp-qt
+GenericName=WARP Client
+Icon=cloudflare-warp-qt
+Keywords=vpn;dns;1.1.1.1;internet;privacy;security;cloudflare;
+MimeType=
+Name=Cloudflare Warp Qt
+Path=
+StartupNotify=true
+Terminal=false
+TerminalOptions=
+Type=Application
+Version=1.5
+X-GNOME-UsesNotifications=true
+X-KDE-SubstituteUID=false
+X-KDE-Username=

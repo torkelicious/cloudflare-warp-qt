@@ -1,0 +1,7 @@
+{
+	"InstallScripts" : 
+	[
+		"/home/torkel/src/cloudflare-warp-qt/appimage/build/cmake_install.cmake"
+	],
+	"Parallel" : false
+}
