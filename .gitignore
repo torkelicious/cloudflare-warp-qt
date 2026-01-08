@@ -49,12 +49,6 @@ CMakeLists.txt.user*
 *creator.user*
 *.autosave
 
-# appimage stuff
-/appimage/build/
-/appimage/AppDir
-/appimage/appimage-build/
-/appimage/squashfs-root/
-
 # trash
 .qt/
 .idea/
@@ -63,6 +57,9 @@ CMakeLists.txt.user*
 
 .DS_Store
 Thumbs.db
-/appimage/build
+
+# appimage stuff
+/appimage/appimage-build/
+/appimage/squashfs-root/
 /appimage/build
 /appimage/AppDir
