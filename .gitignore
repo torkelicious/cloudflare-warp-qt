@@ -53,10 +53,7 @@ CMakeLists.txt.user*
 /appimage/build/
 /appimage/AppDir/
 /appimage/appimage-build/
-/appimage/*.AppImage
-/appimage/*.zsync
 /appimage/squashfs-root/
-
 
 # trash
 .qt/
