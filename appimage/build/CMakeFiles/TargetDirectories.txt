@@ -1,9 +1,0 @@
-/home/torkel/src/cloudflare-warp-qt/appimage/build/CMakeFiles/cloudflare-warp-qt.dir
-/home/torkel/src/cloudflare-warp-qt/appimage/build/CMakeFiles/edit_cache.dir
-/home/torkel/src/cloudflare-warp-qt/appimage/build/CMakeFiles/rebuild_cache.dir
-/home/torkel/src/cloudflare-warp-qt/appimage/build/CMakeFiles/list_install_components.dir
-/home/torkel/src/cloudflare-warp-qt/appimage/build/CMakeFiles/install.dir
-/home/torkel/src/cloudflare-warp-qt/appimage/build/CMakeFiles/install/local.dir
-/home/torkel/src/cloudflare-warp-qt/appimage/build/CMakeFiles/install/strip.dir
-/home/torkel/src/cloudflare-warp-qt/appimage/build/CMakeFiles/cloudflare-warp-qt_autogen_timestamp_deps.dir
-/home/torkel/src/cloudflare-warp-qt/appimage/build/CMakeFiles/cloudflare-warp-qt_autogen.dir

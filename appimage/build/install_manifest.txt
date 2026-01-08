@@ -1,3 +1,0 @@
-/usr/bin/cloudflare-warp-qt
-/usr/share/applications/cloudflare-warp-qt.desktop
-/usr/share/icons/hicolor/256x256/apps/cloudflare-warp-qt.png
