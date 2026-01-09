@@ -115,7 +115,8 @@ void SettingsDiag::saveSettings() {
     QString currentMode = m.hasMatch() ? m.captured(1).trimmed() : QString();
     QString selectedMode = comboMode->currentText();
     if (!selectedMode.isEmpty() && currentMode.compare(selectedMode, Qt::CaseInsensitive) != 0) {
-        if (mf) mf->runCommand("warp-cli", {"set-mode", selectedMode});
+        if (mf) mf->runCommand("warp-cli", {"set-mode", selectedMode}); 
+      //TODO: fix status for DoH modes etc, as they show as disconnected due to that they dont use the network interface, (and save and/or get the state properly too)
     }
     accept();
 }
