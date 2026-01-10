@@ -13,7 +13,7 @@ The application provides a system tray icon and a compact control panel for togg
 - **Settings Menu**
   - **Auto-Connect** – Automatically connect to WARP when the application starts.
   - **Auto-Start** – Add the application to system startup (`~/.config/autostart`).
-  - **Operation Modes** – Switch between `warp`, `doh`, `dot`, etc.
+  - **Operation Modes** – Switch between `warp`, `doh`, `warp+doh`, `dot`, `warp+dot`, & `tunnel_only`.
   - **Registration** – Register a new client via the GUI.
   - **Service Fixer** – Built-in utility to enable the `warp-svc` daemon and disable the conflicting official `warp-taskbar`.
   - _The config file can be found at `~/.config/warp-qt/CloudflareWarpQt.conf`_
