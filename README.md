@@ -16,7 +16,7 @@ The application provides a system tray icon and a compact control panel for togg
   - **Operation Modes** – Switch between `warp`, `doh`, `warp+doh`, `dot`, `warp+dot`, & `tunnel_only`.
   - **Registration** – Register a new client via the GUI.
   - **Service Fixer** – Built-in utility to enable the `warp-svc` daemon and disable the conflicting official `warp-taskbar`.
-  - _The config file can be found at `~/.config/warp-qt/CloudflareWarpQt.conf`_
+  - _The config file can be found at `~/.config/warp-qt/cloudflare-warp-qt.conf`_
 
 ## Requirements
 
