@@ -22,6 +22,11 @@ make -j"$(nproc)"
 echo "Installing to AppDir"
 make install DESTDIR="$APPDIR"
 
-echo "Build completed..."
+echo "Build completed"
 
-echo "Please run appimage-builder."
+echo "Starting appimage-builder."
+
+cd "$APPIMAGE_DIR"
+appimage-builder
+
+echo "appimage-builder finished."
