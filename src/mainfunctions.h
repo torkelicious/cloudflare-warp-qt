@@ -46,6 +46,10 @@ public:
 
     bool isServiceActive();
 
+    QString GetCurrentMode();
+
+    void refreshCachedMode();
+
     bool isWarpConnected();
 
 signals:
@@ -57,6 +61,7 @@ signals:
 private:
     bool isConnecting = false;
     bool isDisconnecting = false;
+    QString cachedMode;
 };
 
 #endif // MAINFUNCTIONS_H

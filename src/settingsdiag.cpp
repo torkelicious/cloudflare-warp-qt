@@ -21,15 +21,16 @@ static const QRegularExpression kModeRegex(QStringLiteral("^Mode:\\s*([^\n]+)"),
                                            QRegularExpression::MultilineOption);
 
 SettingsDiag::SettingsDiag(MainFunctions *mf, QWidget *parent)
-    : QDialog(parent)
-      , mf(mf) {
+    : QDialog(parent), mf(mf)
+{
     setWindowTitle("Settings");
     resize(320, 400);
     setupUI();
     loadSettings();
 }
 
-void SettingsDiag::setupUI() {
+void SettingsDiag::setupUI()
+{
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
 
     QGroupBox *groupGeneral = new QGroupBox("General", this);
@@ -64,7 +65,9 @@ void SettingsDiag::setupUI() {
     QFormLayout *warpLayout = new QFormLayout(groupWarp);
 
     comboMode = new QComboBox(this);
-    comboMode->addItems({"warp", "doh", "warp+doh", "dot", "warp+dot", "proxy"});
+    comboMode->addItems({"warp", "doh", "warp+doh", "dot", "warp+dot", "tunnel_only"});
+    // "proxy" mode is unsupported, so it is not in this list.
+    // and nobody uses it anyways...
 
     btnRegister = new QPushButton("Register New Device", this);
 
@@ -87,60 +90,67 @@ void SettingsDiag::setupUI() {
     connect(btnDisableOfficialTray, &QPushButton::clicked, this, &SettingsDiag::disableOfficialTray);
 }
 
-void SettingsDiag::loadSettings() {
+void SettingsDiag::loadSettings()
+{
     checkAutoConnect->setChecked(settings.value("autoConnect", false).toBool());
     checkAutoStart->setChecked(settings.value("autoStart", false).toBool());
     checkShowOnStart->setChecked(settings.value("showOnStart", false).toBool());
     checkMinimizeOnUnfocus->setChecked(settings.value("minimizeOnUnfocus", true).toBool());
 
-    QString status = mf ? mf->runCommand("warp-cli", {"status"}) : QString();
-    QRegularExpressionMatch m = kModeRegex.match(status);
-    if (m.hasMatch()) {
-        QString mode = m.captured(1).trimmed();
-        int idx = comboMode->findText(mode, Qt::MatchExactly);
-        if (idx >= 0) {
-            comboMode->setCurrentIndex(idx);
-        }
+    QString mode = mf ? mf->GetCurrentMode() : QString();
+    int idx = comboMode->findText(mode, Qt::MatchExactly);
+    if (idx >= 0)
+    {
+        comboMode->setCurrentIndex(idx);
     }
 }
 
-void SettingsDiag::saveSettings() {
+void SettingsDiag::saveSettings()
+{
     settings.setValue("autoConnect", checkAutoConnect->isChecked());
     settings.setValue("autoStart", checkAutoStart->isChecked());
     settings.setValue("showOnStart", checkShowOnStart->isChecked());
     settings.setValue("minimizeOnUnfocus", checkMinimizeOnUnfocus->isChecked());
     setAutoStart(checkAutoStart->isChecked());
-    QString status = mf ? mf->runCommand("warp-cli", {"status"}) : QString();
-    QRegularExpressionMatch m = kModeRegex.match(status);
-    QString currentMode = m.hasMatch() ? m.captured(1).trimmed() : QString();
+    QString currentMode = mf ? mf->GetCurrentMode() : QString();
     QString selectedMode = comboMode->currentText();
-    if (!selectedMode.isEmpty() && currentMode.compare(selectedMode, Qt::CaseInsensitive) != 0) {
-        if (mf) mf->runCommand("warp-cli", {"set-mode", selectedMode}); 
-      //TODO: fix status for DoH modes etc, as they show as disconnected due to that they dont use the network interface, (and save and/or get the state properly too)
+    if (!selectedMode.isEmpty() && currentMode.compare(selectedMode, Qt::CaseInsensitive) != 0)
+    {
+        if (mf)
+        {
+            mf->runCommand("warp-cli", {"mode", selectedMode});
+            mf->refreshCachedMode();
+        }
     }
     accept();
 }
 
-void SettingsDiag::registerNewClient() {
+void SettingsDiag::registerNewClient()
+{
     auto reply = QMessageBox::question(
         this,
         "Register",
         "This will re-register the client and might reset your license key. Continue?",
         QMessageBox::Yes | QMessageBox::No);
 
-    if (reply == QMessageBox::Yes) {
-        if (mf) mf->cliRegister();
+    if (reply == QMessageBox::Yes)
+    {
+        if (mf)
+            mf->cliRegister();
     }
 }
 
-void SettingsDiag::enableDaemon() {
+void SettingsDiag::enableDaemon()
+{
     auto watcher = new QFutureWatcher<MainFunctions::CommandResult>(this);
-    if (!mf) {
+    if (!mf)
+    {
         watcher->deleteLater();
         return;
     }
     watcher->setFuture(mf->runCommandAsync("pkexec", {"systemctl", "enable", "--now", "warp-svc"}, 120000));
-    connect(watcher, &QFutureWatcherBase::finished, this, [this, watcher]() {
+    connect(watcher, &QFutureWatcherBase::finished, this, [this, watcher]()
+            {
         auto res = watcher->future().result();
         watcher->deleteLater();
         if (!res.timedOut && res.exitCode == 0) {
@@ -155,26 +165,29 @@ void SettingsDiag::enableDaemon() {
                           : "Unknown error";
             QMessageBox::warning(this, "Operation Failed",
                                  QString("Failed to enable/start 'warp-svc'.\n\nDetails:\n%1").arg(err));
-        }
-    });
+        } });
 }
 
-void SettingsDiag::setAutoStart(bool enable) {
+void SettingsDiag::setAutoStart(bool enable)
+{
     // (~/.config/autostart)
     const QString autostartDir = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation) + "/autostart";
     QDir().mkpath(autostartDir);
 
     const QString desktopPath = autostartDir + "/cloudflare-warp-qt.desktop";
 
-    if (enable) {
+    if (enable)
+    {
         QFile resFile(":/cloudflare-warp-qt.desktop");
-        if (!resFile.open(QIODevice::ReadOnly)) {
+        if (!resFile.open(QIODevice::ReadOnly))
+        {
             qWarning() << "Failed to open /resources desktop file";
             return;
         }
 
         QFile outFile(desktopPath);
-        if (!outFile.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+        if (!outFile.open(QIODevice::WriteOnly | QIODevice::Truncate))
+        {
             qWarning() << "Failed to write desktop file to autostart";
             return;
         }
@@ -187,26 +200,33 @@ void SettingsDiag::setAutoStart(bool enable) {
         QFile::Permissions perms = outFile.permissions();
         perms |= QFileDevice::ExeOwner | QFileDevice::ExeGroup | QFileDevice::ExeOther;
         outFile.setPermissions(perms);
-    } else {
+    }
+    else
+    {
         QFile file(desktopPath);
-        if (file.exists()) {
-            if (!file.remove()) {
+        if (file.exists())
+        {
+            if (!file.remove())
+            {
                 qWarning() << "Failed to remove autostart desktop file!";
             }
         }
     }
 }
 
-void SettingsDiag::disableOfficialTray() {
+void SettingsDiag::disableOfficialTray()
+{
     auto watcher1 = new QFutureWatcher<MainFunctions::CommandResult>(this);
-    if (!mf) {
+    if (!mf)
+    {
         watcher1->deleteLater();
         return;
     }
     watcher1->setFuture(
         mf->runCommandAsync("systemctl", {"--user", "disable", "warp-taskbar"}, 10000));
 
-    connect(watcher1, &QFutureWatcherBase::finished, this, [this, watcher1]() {
+    connect(watcher1, &QFutureWatcherBase::finished, this, [this, watcher1]()
+            {
         auto res1 = watcher1->future().result();
         watcher1->deleteLater();
 
@@ -257,6 +277,5 @@ void SettingsDiag::disableOfficialTray() {
                     "User service was handled, but autostart override failed."
                 );
             }
-        });
-    });
+        }); });
 }
