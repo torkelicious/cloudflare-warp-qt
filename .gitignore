@@ -22,6 +22,8 @@
 *.ilk
 *.pdb
 *.dwo
+*.AppImage
+*.AppImage.zsync
 
 # Qt & QMake
 Makefile*
