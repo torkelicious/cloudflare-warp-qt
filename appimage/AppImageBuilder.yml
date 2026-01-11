@@ -1,17 +1,14 @@
-# appimage-builder recipe see https://appimage-builder.readthedocs.io for details
 version: 1
+
 AppDir:
-path: ./AppDir
-app_info:
+  path: ./AppDir
+  app_info:
     id: cloudflare-warp-qt
     name: Cloudflare Warp Qt
     icon: cloudflare-warp-qt
     version: latest
     exec: usr/bin/cloudflare-warp-qt
     exec_args: $@
-  #  pacman:
-  #    include: []
-  #    exclude: []
   files:
     include:
       - /lib64/ld-linux-x86-64.so.2
@@ -37,6 +34,7 @@ app_info:
     ubuntu-xenial:
       image: appimagecrafters/tests-env:ubuntu-xenial
       command: ./AppRun
+
 AppImage:
   arch: x86_64
   update-information: guess
