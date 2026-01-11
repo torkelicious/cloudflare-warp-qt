@@ -2,7 +2,8 @@
 
 A lightweight C++ (Qt6) GUI based on the Cloudflare WARP CLI (`warp-cli`) on Linux.
 
-The application provides a system tray icon and a compact control panel for toggling the connection status, managing configuration options, and handling registration.
+The application provides a system tray icon and a compact control panel for toggling the connection status, managing
+configuration options, and handling registration.
 
 ![Screenshot of Application main menu](https://github.com/torkelicious/cloudflare-warp-qt/blob/main/screenshots/widget-ui.png) ![Screenshot of Application settings](https://github.com/torkelicious/cloudflare-warp-qt/blob/main/screenshots/settings-diag.png)
 
@@ -11,12 +12,13 @@ The application provides a system tray icon and a compact control panel for togg
 - **Toggle Connection** – Connect or disconnect directly from the UI or the system tray.
 - **System Tray** – Persistent tray icon with status indication (Connected / Disconnected) and a context menu.
 - **Settings Menu**
-  - **Auto-Connect** – Automatically connect to WARP when the application starts.
-  - **Auto-Start** – Add the application to system startup (`~/.config/autostart`).
-  - **Operation Modes** – Switch between `warp`, `doh`, `warp+doh`, `dot`, `warp+dot`, & `tunnel_only`.
-  - **Registration** – Register a new client via the GUI.
-  - **Service Fixer** – Built-in utility to enable the `warp-svc` daemon and disable the conflicting official `warp-taskbar`.
-  - _The config file can be found at `~/.config/warp-qt/cloudflare-warp-qt.conf`_
+    - **Auto-Connect** – Automatically connect to WARP when the application starts.
+    - **Auto-Start** – Add the application to system startup (`~/.config/autostart`).
+    - **Operation Modes** – Switch between `warp`, `doh`, `warp+doh`, `dot`, `warp+dot`, & `tunnel_only`.
+    - **Registration** – Register a new client via the GUI.
+    - **Service Fixer** – Built-in utility to enable the `warp-svc` daemon and disable the conflicting official
+      `warp-taskbar`.
+    - _The config file can be found at `~/.config/warp-qt/cloudflare-warp-qt.conf`_
 
 ## Requirements
 
@@ -31,6 +33,7 @@ You can use the provided `build_install.sh` script to compile and install the ap
 ```bash
 chmod +x build_install.sh && ./build_install.sh
 ```
+
 the produced binary name will be cloudflare-warp-qt
 
 ## Uninstall
@@ -51,7 +54,8 @@ I will probably either replace or compliment the current installation scripts wi
 
 ### “The application is already running”
 
-The app uses a lock file at `/tmp/warp-qt.<user>.lock` to prevent multiple instances. Check your system tray, the icon may be hidden.
+The app uses a lock file at `/tmp/warp-qt.<user>.lock` to prevent multiple instances. Check your system tray, the icon
+may be hidden.
 
 ### Duplicate tray icons
 

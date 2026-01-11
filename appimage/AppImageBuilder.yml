@@ -9,18 +9,18 @@ AppDir:
     version: latest
     exec: usr/bin/cloudflare-warp-qt
     exec_args: $@
-#  pacman:
-#    include: []
-#    exclude: []
+  #  pacman:
+  #    include: []
+  #    exclude: []
   files:
     include:
-    - /lib64/ld-linux-x86-64.so.2
+      - /lib64/ld-linux-x86-64.so.2
     exclude:
-    - usr/share/man
-    - usr/share/doc/*/README.*
-    - usr/share/doc/*/changelog.*
-    - usr/share/doc/*/NEWS.*
-    - usr/share/doc/*/TODO.*
+      - usr/share/man
+      - usr/share/doc/*/README.*
+      - usr/share/doc/*/changelog.*
+      - usr/share/doc/*/NEWS.*
+      - usr/share/doc/*/TODO.*
   test:
     fedora-30:
       image: appimagecrafters/tests-env:fedora-30

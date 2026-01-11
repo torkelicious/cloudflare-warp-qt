@@ -21,8 +21,8 @@ static const QString kNotPrivateHtml = QStringLiteral(
     "color:#ffffff;'>not private</span></p></body></html>");
 
 Widget::Widget(MainFunctions *mf, QWidget *parent)
-    : QWidget(parent), ui(new Ui::Widget), mf(mf), connectedState(false), shouldUnfocus(false), pendingState(TransitionState::None), pollTimer(new QTimer(this)), expectedState(false), pollAttempt(0)
-{
+    : QWidget(parent), ui(new Ui::Widget), mf(mf), connectedState(false), shouldUnfocus(false),
+      pendingState(TransitionState::None), pollTimer(new QTimer(this)), expectedState(false), pollAttempt(0) {
     ui->setupUi(this);
     setFixedSize(310, 405);
     setWindowFlags(Qt::Tool | Qt::WindowStaysOnTopHint);
@@ -36,8 +36,7 @@ Widget::Widget(MainFunctions *mf, QWidget *parent)
     bool shouldAutoConnect = settings.value("autoConnect", false).toBool();
     bool actuallyConnected = mf->isWarpConnected();
 
-    if (shouldAutoConnect && !actuallyConnected)
-    {
+    if (shouldAutoConnect && !actuallyConnected) {
         mf->cliConnect();
     }
 
@@ -45,41 +44,33 @@ Widget::Widget(MainFunctions *mf, QWidget *parent)
     updateUI();
 }
 
-Widget::~Widget()
-{
+Widget::~Widget() {
     delete ui;
 }
 
-void Widget::refreshSettings()
-{
+void Widget::refreshSettings() {
     QSettings settings;
     shouldUnfocus = settings.value("minimizeOnUnfocus", true).toBool();
 }
 
-void Widget::openSettings()
-{
+void Widget::openSettings() {
     SettingsDiag dlg(mf, this);
     dlg.exec();
     refreshSettings();
 }
 
-void Widget::on_btn_settings_clicked()
-{
+void Widget::on_btn_settings_clicked() {
     openSettings();
 }
 
-void Widget::closeEvent(QCloseEvent *event)
-{
+void Widget::closeEvent(QCloseEvent *event) {
     setAttribute(Qt::WA_DeleteOnClose, true);
     event->accept();
 }
 
-bool Widget::event(QEvent *event)
-{
-    if (event->type() == QEvent::WindowDeactivate)
-    {
-        if (!shouldUnfocus)
-        {
+bool Widget::event(QEvent *event) {
+    if (event->type() == QEvent::WindowDeactivate) {
+        if (!shouldUnfocus) {
             return true;
         }
         hide();
@@ -88,8 +79,7 @@ bool Widget::event(QEvent *event)
     return QWidget::event(event);
 }
 
-void Widget::showPositioned()
-{
+void Widget::showPositioned() {
     QPoint cursor = QCursor::pos();
     QScreen *screen = QGuiApplication::screenAt(cursor);
     if (!screen)
@@ -111,21 +101,16 @@ void Widget::showPositioned()
     move(x, y);
     show();
     const QString platform = QGuiApplication::platformName();
-    if (!platform.contains("wayland", Qt::CaseInsensitive))
-    {
+    if (!platform.contains("wayland", Qt::CaseInsensitive)) {
         activateWindow();
         raise();
-    }
-    else
-    {
+    } else {
         QApplication::alert(this);
     }
 }
 
-void Widget::updateUI()
-{
-    if (pendingState == TransitionState::Connecting)
-    {
+void Widget::updateUI() {
+    if (pendingState == TransitionState::Connecting) {
         ui->btn_start->setEnabled(false);
         ui->btn_start->setText("Connecting...");
         ui->connected_status->setText("CONNECTING...");
@@ -136,8 +121,7 @@ void Widget::updateUI()
             "padding: 15px 32px; border-radius: 20px; font-weight: bold; font-size: 18px; border: none; }");
         return;
     }
-    if (pendingState == TransitionState::Disconnecting)
-    {
+    if (pendingState == TransitionState::Disconnecting) {
         ui->btn_start->setEnabled(false);
         ui->btn_start->setText("Disconnecting...");
         ui->connected_status->setText("DISCONNECTING...");
@@ -151,8 +135,7 @@ void Widget::updateUI()
 
     ui->btn_start->setEnabled(true);
 
-    if (connectedState)
-    {
+    if (connectedState) {
         ui->btn_start->setText("Disconnect");
         ui->connected_status->setText("CONNECTED");
         ui->connected_status->setStyleSheet("color: #F48120; font-weight: bold;");
@@ -162,9 +145,7 @@ void Widget::updateUI()
             "QPushButton { background-color: #F48120; color: #ffffff; "
             "padding: 15px 32px; border-radius: 20px; font-weight: bold; font-size: 18px; border: none; } "
             "QPushButton:hover { background-color: #FAAD3F; }");
-    }
-    else
-    {
+    } else {
         ui->btn_start->setText("Connect");
         ui->connected_status->setText("DISCONNECTED");
         ui->connected_status->setStyleSheet("color: #ffffff; font-weight: bold;");
@@ -177,12 +158,10 @@ void Widget::updateUI()
     }
 }
 
-void Widget::pollConnectionState()
-{
+void Widget::pollConnectionState() {
     bool reality = mf->isWarpConnected();
 
-    if (reality == expectedState || pollAttempt >= kPollDelaysCount)
-    {
+    if (reality == expectedState || pollAttempt >= kPollDelaysCount) {
         connectedState = reality;
         setPending(TransitionState::None);
         emit connectionChanged(connectedState);
@@ -194,51 +173,42 @@ void Widget::pollConnectionState()
     pollTimer->start(delay);
 }
 
-void Widget::on_btn_start_clicked()
-{
+void Widget::on_btn_start_clicked() {
     setPending(connectedState ? TransitionState::Disconnecting : TransitionState::Connecting);
     updateUI();
 
     auto watcher = new QFutureWatcher<MainFunctions::CommandResult>(this);
-    if (!connectedState)
-    {
+    if (!connectedState) {
         watcher->setFuture(mf->cliConnectAsync());
-    }
-    else
-    {
+    } else {
         watcher->setFuture(mf->cliDisconnectAsync());
     }
 
-    connect(watcher, &QFutureWatcherBase::finished, this, [this, watcher]()
-            {
+    connect(watcher, &QFutureWatcherBase::finished, this, [this, watcher]() {
         watcher->deleteLater();
         expectedState = !connectedState;
         pollAttempt = 0;
         const int initialDelay = expectedState ? 2000 : 800;
-        pollTimer->start(initialDelay); });
+        pollTimer->start(initialDelay);
+    });
 }
 
-void Widget::onConnectionChanged(bool connected)
-{
-    if (connectedState != connected)
-    {
+void Widget::onConnectionChanged(bool connected) {
+    if (connectedState != connected) {
         connectedState = connected;
         setPending(TransitionState::None);
         updateUI();
     }
 }
 
-void Widget::setPending(TransitionState state)
-{
+void Widget::setPending(TransitionState state) {
     pendingState = state;
 }
 
-QString Widget::getPrivateHtml() const
-{
+QString Widget::getPrivateHtml() const {
     return kPrivateHtml;
 }
 
-QString Widget::getNotPrivateHtml() const
-{
+QString Widget::getNotPrivateHtml() const {
     return kNotPrivateHtml;
 }

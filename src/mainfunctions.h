@@ -5,15 +5,13 @@
 #include <QFuture>
 #include <QObject>
 
-class MainFunctions : public QObject
-{
+class MainFunctions : public QObject {
     Q_OBJECT
 
 public:
     explicit MainFunctions(QObject *parent = nullptr);
 
-    struct CommandResult
-    {
+    struct CommandResult {
         int exitCode = -1;
         QString out;
         QString err;
@@ -52,7 +50,9 @@ public:
 
     bool isWarpConnected();
 
-signals:
+    signals:
+
+    
 
     void errorOccurred(const QString &title, const QString &message);
 
