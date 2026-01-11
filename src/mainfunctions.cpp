@@ -135,7 +135,7 @@ void MainFunctions::cliRegister()
 {
     QPointer<MainFunctions> self(this);
     auto watcher = new QFutureWatcher<CommandResult>(this);
-    watcher->setFuture(runCommandAsync("warp-cli", {"registration", "new"}, 15000));
+    watcher->setFuture(runCommandAsync("warp-cli", { "--accept-tos","registration", "new"}, 15000));
 
     connect(watcher, &QFutureWatcher<CommandResult>::finished, watcher, [self, watcher]()
             {
