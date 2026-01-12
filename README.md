@@ -28,7 +28,10 @@ configuration options, and handling registration.
 
 ## Build & Install
 
-You can use the provided `build_install.sh` script to compile and install the application.
+### An Arch Linux pkgbuild can be found att [/pkgbuilds](https://github.com/torkelicious/cloudflare-warp-qt/blob/main/pkgbuilds/) 
+
+
+You can use the provided `build_install.sh` script to compile and install the application via cmake.
 
 ```bash
 chmod +x build_install.sh && ./build_install.sh
@@ -43,8 +46,6 @@ To uninstall the application, run the included uninstaller script:
 ```bash
 chmod +x uninstall.sh && ./uninstall.sh
 ```
-
-I will probably either replace or compliment the current installation scripts with a PKGBUILD soon.
 
 ## Command-Line Arguments
 
