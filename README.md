@@ -22,7 +22,7 @@ configuration options, and handling registration.
 
 ## Requirements
 
-- **Qt6** (`qt6-base`)
+- **Qt6** (`qt6-base` and `qt6-tools` for building)
 - **Cloudflare WARP** (e.g. `cloudflare-warp-bin` or another implementation providing `warp-cli`)
 - **CMake** and **GCC/Clang** for building
 
