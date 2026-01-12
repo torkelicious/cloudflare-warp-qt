@@ -71,5 +71,5 @@ appimage/build/
 # PKGBUILD build artifacts
 pkgbuilds/src/
 pkgbuilds/pkg/
-pkgbuilds/*. pkg.tar.zst
+pkgbuilds/*.pkg.tar.zst
 pkgbuilds/cloudflare-warp-qt-git/
