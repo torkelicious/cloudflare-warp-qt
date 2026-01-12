@@ -67,3 +67,9 @@ appimage/AppDir.squashfs
 appimage/AppDir/
 appimage/build/
 /.cache
+
+# PKGBUILD build artifacts
+pkgbuilds/src/
+pkgbuilds/pkg/
+pkgbuilds/*. pkg.tar.zst
+pkgbuilds/cloudflare-warp-qt-git/
