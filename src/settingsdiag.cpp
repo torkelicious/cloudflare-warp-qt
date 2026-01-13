@@ -92,7 +92,7 @@ void SettingsDiag::loadSettings() {
     checkAutoConnect->setChecked(settings.value("autoConnect", false).toBool());
     checkAutoStart->setChecked(settings.value("autoStart", false).toBool());
     checkShowOnStart->setChecked(settings.value("showOnStart", false).toBool());
-    checkMinimizeOnUnfocus->setChecked(settings.value("minimizeOnUnfocus", true).toBool());
+    checkMinimizeOnUnfocus->setChecked(settings.value("minimizeOnUnfocus", false).toBool());
 
     QString mode = mf ? mf->GetCurrentMode() : QString();
     int idx = comboMode->findText(mode, Qt::MatchExactly);
