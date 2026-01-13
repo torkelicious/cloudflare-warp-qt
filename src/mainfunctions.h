@@ -52,8 +52,6 @@ public:
 
     signals:
 
-    
-
     void errorOccurred(const QString &title, const QString &message);
 
     void infoOccurred(const QString &title, const QString &message);

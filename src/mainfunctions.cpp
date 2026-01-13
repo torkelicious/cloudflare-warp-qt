@@ -5,6 +5,8 @@
 #include <QFutureWatcher>
 #include <QPointer>
 #include <QFile>
+#include <QStandardPaths>
+#include <QMessageBox>
 #include <map>
 
 namespace {
@@ -119,33 +121,43 @@ QFuture<MainFunctions::CommandResult> MainFunctions::cliDisconnectAsync() {
 }
 
 void MainFunctions::cliRegister() {
-    QPointer < MainFunctions > self(this);
-    auto watcher = new QFutureWatcher<CommandResult>(this);
-    watcher->setFuture(runCommandAsync("warp-cli", {"--accept-tos", "registration", "new"}, 15000));
+    QMessageBox::information(
+        nullptr,
+        QStringLiteral("Accept Terms of Service"),
+        QStringLiteral("Cloudflare WARP requires accepting its Terms of Service in a terminal once.\n\n"
+                       "A terminal window will now open. Please complete registration and close it when finished.")
+    );
 
-    connect(watcher, &QFutureWatcher<CommandResult>::finished, watcher, [self, watcher]() {
-        const CommandResult res = watcher->result();
-        watcher->deleteLater();
-        if (!self) return;
+    const QString command = "warp-cli --accept-tos registration new";
+    const QStringList terminals = {
+        "x-terminal-emulator",
+        "gnome-terminal",
+        "konsole",
+        "xfce4-terminal",
+        "xterm"
+    };
 
-        if (res.timedOut) {
-            emit
-            self->errorOccurred(QStringLiteral("Registration Error"), QStringLiteral("Registration timed out."));
-            return;
-        }
+    for (const QString &term : terminals) {
+        if (QStandardPaths::findExecutable(term).isEmpty())
+            continue;
 
-        if (res.exitCode != 0) {
-            const QString msg = res.err.isEmpty() ? res.out : res.err;
-            emit
-            self->errorOccurred(QStringLiteral("Registration Error"),
-                                msg.isEmpty() ? QStringLiteral("Registration failed.") : msg);
-            return;
-        }
+        QStringList args;
+        const QString bashCommand = command + "; echo; read -p \"Press Enter to close...\"";
 
-        const QString message = res.out.isEmpty() ? QStringLiteral("Registration completed.") : res.out;
-        emit
-        self->infoOccurred(QStringLiteral("Registration"), message);
-    });
+        if (term == "gnome-terminal")
+            args = {"--", "bash", "-c", bashCommand};
+        else
+            args = {"-e", "bash", "-c", bashCommand};
+
+        QProcess::startDetached(term, args);
+        return;
+    }
+
+    QMessageBox::critical(
+        nullptr,
+        QStringLiteral("Terminal Error"),
+        QStringLiteral("No supported terminal emulator found.")
+    );
 }
 
 QString MainFunctions::cliStatus() {
