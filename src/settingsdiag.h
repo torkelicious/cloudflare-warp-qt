@@ -10,23 +10,17 @@ class QCheckBox;
 class QComboBox;
 class QPushButton;
 
-class SettingsDiag : public QDialog {
+class SettingsDiag : public QDialog
+{
     Q_OBJECT
 
 public:
     explicit SettingsDiag(MainFunctions *mf, QWidget *parent = nullptr);
 
-private
-    slots:
-
-    
-
+private slots:
     void saveSettings();
-
     void registerNewClient();
-
     void enableDaemon();
-
     void disableOfficialTray();
 
 private:
