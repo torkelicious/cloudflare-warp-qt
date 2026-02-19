@@ -73,3 +73,4 @@ pkgbuilds/src/
 pkgbuilds/pkg/
 pkgbuilds/*.pkg.tar.zst
 pkgbuilds/cloudflare-warp-qt-git/
+.clangd
