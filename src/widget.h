@@ -10,38 +10,55 @@
 class SettingsDiag;
 
 QT_BEGIN_NAMESPACE
-namespace Ui
-{
+
+namespace Ui {
     class Widget;
 }
+
 QT_END_NAMESPACE
 
-class Widget : public QWidget
-{
+class Widget : public QWidget {
     Q_OBJECT
 
 public:
     explicit Widget(MainFunctions *mf, QWidget *parent = nullptr);
+
     ~Widget();
 
 protected:
     void closeEvent(QCloseEvent *event) override;
+
     bool event(QEvent *event) override;
 
-private slots:
+private
+    slots:
+
+
+    
+
     void on_btn_start_clicked();
+
     void on_btn_settings_clicked();
 
-public slots:
+public
+    slots:
+
+
+    
+
     void onConnectionChanged(bool connected);
+
     void openSettings();
 
-signals:
+    signals:
+
+
+    
+
     void connectionChanged(bool connected);
 
 private:
-    enum class TransitionState
-    {
+    enum class TransitionState {
         None,
         Connecting,
         Disconnecting

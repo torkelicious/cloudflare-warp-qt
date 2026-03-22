@@ -4,16 +4,15 @@
 #include <QString>
 #include <QFuture>
 #include <QObject>
+#include <QFileSystemWatcher>
 
-class MainFunctions : public QObject
-{
+class MainFunctions : public QObject {
     Q_OBJECT
 
 public:
     explicit MainFunctions(QObject *parent = nullptr);
 
-    struct CommandResult
-    {
+    struct CommandResult {
         int exitCode = -1;
         QString out;
         QString err;
@@ -54,7 +53,11 @@ public:
 
 signals:
     void errorOccurred(const QString &title, const QString &message);
+
     void infoOccurred(const QString &title, const QString &message);
+
+private slots:
+    void checkResolvConf();
 
 private:
     void setupToggleOperation(QFuture<CommandResult> future, bool isConnect);
@@ -62,6 +65,9 @@ private:
     bool isConnecting = false;
     bool isDisconnecting = false;
     QString cachedMode;
+
+    QFileSystemWatcher *resolvWatcher;
+    bool resolvConnected = false;
 };
 
 #endif // MAINFUNCTIONS_H

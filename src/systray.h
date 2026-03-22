@@ -9,23 +9,37 @@
 #include "mainfunctions.h"
 #include "widget.h"
 
-class SysTray : public QObject
-{
+class SysTray : public QObject {
     Q_OBJECT
 
 public:
     explicit SysTray(MainFunctions *mf, QObject *parent = nullptr);
+
     Widget *ensureWidget();
+
     void setupTray();
 
-public slots:
+public
+    slots:
+
+
+    
+
     void handleErrorBackoff(const QString &title, const QString &message);
+
     void updateStatus(bool connected);
+
     void checkStatus();
+
     void showErrorNotification(const QString &title, const QString &message);
+
     void showInfoNotification(const QString &title, const QString &message);
 
-signals:
+    signals:
+
+
+    
+
     void connectionChanged(bool connected);
 
 private:
