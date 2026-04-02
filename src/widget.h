@@ -7,8 +7,6 @@
 #include <QTimer>
 #include "mainfunctions.h"
 
-class SettingsDiag;
-
 QT_BEGIN_NAMESPACE
 
 namespace Ui {
@@ -30,39 +28,23 @@ protected:
 
     bool event(QEvent *event) override;
 
-private
-    slots:
-
-
-    
-
-    void on_btn_start_clicked();
-
-    void on_btn_settings_clicked();
-
-public
-    slots:
-
-
-    
-
+public slots:
     void onConnectionChanged(bool connected);
 
     void openSettings();
 
-    signals:
+private slots:
+    void on_btn_start_clicked();
 
+    void on_btn_settings_clicked();
 
-    
-
+signals:
     void connectionChanged(bool connected);
 
+    void settingsChanged();
+
 private:
-    enum class TransitionState {
-        None,
-        Connecting,
-        Disconnecting
-    };
+    enum class TransitionState { None, Connecting, Disconnecting };
 
     Ui::Widget *ui;
     MainFunctions *mf;
@@ -70,14 +52,12 @@ private:
     bool shouldUnfocus;
     TransitionState pendingState;
 
-    // Polling state for connection checks
     QTimer *pollTimer;
     bool expectedState;
     int pollAttempt;
 
     void pollConnectionState();
 
-private:
     void refreshSettings();
 
     void updateUI();

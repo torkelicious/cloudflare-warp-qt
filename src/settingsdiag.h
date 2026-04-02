@@ -3,9 +3,9 @@
 
 #include <QDialog>
 #include <QSettings>
+#include <QSpinBox>
 #include "mainfunctions.h"
 
-class QVBoxLayout;
 class QCheckBox;
 class QComboBox;
 class QPushButton;
@@ -16,12 +16,7 @@ class SettingsDiag : public QDialog {
 public:
     explicit SettingsDiag(MainFunctions *mf, QWidget *parent = nullptr);
 
-private
-    slots:
-
-
-    
-
+private slots:
     void saveSettings();
 
     void registerNewClient();
@@ -42,6 +37,7 @@ private:
     QCheckBox *checkShowOnStart;
     QCheckBox *checkMinimizeOnUnfocus;
     QComboBox *comboMode;
+    QSpinBox *pollingRateSpinBox;
     QPushButton *btnRegister;
     QPushButton *btnEnableDaemon;
     QPushButton *btnDisableOfficialTray;

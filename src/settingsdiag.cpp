@@ -13,6 +13,7 @@
 #include <QTextStream>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
+#include <QSpinBox>
 #include <QRegularExpression>
 #include <QCoreApplication>
 #include <QFutureWatcher>
@@ -37,7 +38,13 @@ void SettingsDiag::setupUI() {
     checkAutoStart = new QCheckBox("Start App on System Boot", this);
     checkAutoConnect = new QCheckBox("Auto-Connect WARP on Start", this);
     checkShowOnStart = new QCheckBox("Show Window on App Start", this);
-    checkMinimizeOnUnfocus = new QCheckBox("Minimize the popup on Unfocus", this);
+    checkMinimizeOnUnfocus = new QCheckBox("Minimize Popup on Unfocus", this);
+
+    checkAutoStart->setToolTip("Automatically starts this GUI application when you log into your desktop environment.");
+    checkAutoConnect->setToolTip("Automatically connects to WARP when this application starts.");
+    checkShowOnStart->setToolTip(
+        "Shows the main window when the application starts, instead of minimizing to the system tray.");
+    checkMinimizeOnUnfocus->setToolTip("Hides the main window automatically when you click outside of it.");
 
     generalLayout->addWidget(checkAutoStart);
     generalLayout->addWidget(checkAutoConnect);
@@ -49,11 +56,11 @@ void SettingsDiag::setupUI() {
     QVBoxLayout *systemLayout = new QVBoxLayout(groupSystem);
 
     btnEnableDaemon = new QPushButton("Enable warp-svc (Warp Daemon)", this);
-    btnEnableDaemon->setToolTip("Requires root: Enables and starts 'warp-svc' system service.");
+    btnEnableDaemon->setToolTip("Requires root: Enables and starts the background 'warp-svc' system service.");
 
     btnDisableOfficialTray = new QPushButton("Disable/Kill Official Tray", this);
     btnDisableOfficialTray->setToolTip(
-        "Disables user unit 'warp-taskbar' and kills process if running, may require root.");
+        "Disables user unit 'warp-taskbar' and kills the process if running. May require root.");
 
     systemLayout->addWidget(btnEnableDaemon);
     systemLayout->addWidget(btnDisableOfficialTray);
@@ -64,14 +71,30 @@ void SettingsDiag::setupUI() {
 
     comboMode = new QComboBox(this);
     comboMode->addItems({"warp", "doh", "warp+doh", "dot", "warp+dot", "tunnel_only"});
+    comboMode->setToolTip(
+        "Select the operation mode for Cloudflare WARP. Changing this will apply the new mode via the CLI.");
     // "proxy" mode is unsupported, so it is not in this list.
     // and nobody uses it anyways...
 
     btnRegister = new QPushButton("Register New Device", this);
+    btnRegister->setToolTip("Registers a new device with Cloudflare WARP. Warning: This may reset your license key.");
 
     warpLayout->addRow("Operation Mode:", comboMode);
     warpLayout->addRow(btnRegister);
     mainLayout->addWidget(groupWarp);
+
+    QGroupBox *groupAdvanced = new QGroupBox("Advanced", this);
+    QFormLayout *advancedLayout = new QFormLayout(groupAdvanced);
+
+    pollingRateSpinBox = new QSpinBox(this);
+    pollingRateSpinBox->setRange(100, 100000);
+    pollingRateSpinBox->setSingleStep(50);
+    pollingRateSpinBox->setSuffix(" ms");
+    pollingRateSpinBox->setToolTip(
+        "How often the system tray icon checks the WARP daemon for status changes (in milliseconds).");
+
+    advancedLayout->addRow("Systray Polling Rate:", pollingRateSpinBox);
+    mainLayout->addWidget(groupAdvanced);
 
     QHBoxLayout *btnLayout = new QHBoxLayout();
     QPushButton *btnSave = new QPushButton("Save", this);
@@ -94,6 +117,8 @@ void SettingsDiag::loadSettings() {
     checkShowOnStart->setChecked(settings.value("showOnStart", false).toBool());
     checkMinimizeOnUnfocus->setChecked(settings.value("minimizeOnUnfocus", false).toBool());
 
+    pollingRateSpinBox->setValue(settings.value("trayPollingRate", 5000).toInt());
+
     QString mode = mf ? mf->GetCurrentMode() : QString();
     int idx = comboMode->findText(mode, Qt::MatchExactly);
     if (idx >= 0) {
@@ -106,6 +131,8 @@ void SettingsDiag::saveSettings() {
     settings.setValue("autoStart", checkAutoStart->isChecked());
     settings.setValue("showOnStart", checkShowOnStart->isChecked());
     settings.setValue("minimizeOnUnfocus", checkMinimizeOnUnfocus->isChecked());
+    settings.setValue("trayPollingRate", pollingRateSpinBox->value());
+
     setAutoStart(checkAutoStart->isChecked());
     QString currentMode = mf ? mf->GetCurrentMode() : QString();
     QString selectedMode = comboMode->currentText();
@@ -159,7 +186,6 @@ void SettingsDiag::enableDaemon() {
 }
 
 void SettingsDiag::setAutoStart(bool enable) {
-    // (~/.config/autostart)
     const QString autostartDir = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation) + "/autostart";
     QDir().mkpath(autostartDir);
 
@@ -182,7 +208,6 @@ void SettingsDiag::setAutoStart(bool enable) {
         outFile.close();
         resFile.close();
 
-        // make desktop file executable
         QFile::Permissions perms = outFile.permissions();
         perms |= QFileDevice::ExeOwner | QFileDevice::ExeGroup | QFileDevice::ExeOther;
         outFile.setPermissions(perms);
@@ -218,7 +243,6 @@ void SettingsDiag::disableOfficialTray() {
         connect(watcher2, &QFutureWatcherBase::finished, this, [this, res1, watcher2]() {
             watcher2->deleteLater();
 
-            // user autostart override always write Hidden=true
             const QString autostartDir =
                     QStandardPaths::writableLocation(QStandardPaths::ConfigLocation)
                     + "/autostart";

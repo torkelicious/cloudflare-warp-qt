@@ -51,12 +51,21 @@ public:
 
     bool isWarpConnected();
 
-signals:
+    signals:
+
+
+    
+
     void errorOccurred(const QString &title, const QString &message);
 
     void infoOccurred(const QString &title, const QString &message);
 
-private slots:
+private
+    slots:
+
+
+    
+
     void checkResolvConf();
 
 private:

@@ -57,6 +57,7 @@ void Widget::openSettings() {
     SettingsDiag dlg(mf, this);
     dlg.exec();
     refreshSettings();
+    emit settingsChanged();
 }
 
 void Widget::on_btn_settings_clicked() {

@@ -19,11 +19,8 @@ public:
 
     void setupTray();
 
-public
-    slots:
-
-
-    
+public slots:
+    void loadSettings();
 
     void handleErrorBackoff(const QString &title, const QString &message);
 
@@ -35,11 +32,7 @@ public
 
     void showInfoNotification(const QString &title, const QString &message);
 
-    signals:
-
-
-    
-
+signals:
     void connectionChanged(bool connected);
 
 private:
@@ -53,10 +46,11 @@ private:
     QIcon iconConnected;
     QIcon iconDisconnected;
 
-    // Toggle polling state
     QTimer *togglePollTimer;
     bool toggleExpectedState;
     int togglePollAttempt;
+
+    int systrayPollRate = 5000;
 
     void pollToggleState();
 

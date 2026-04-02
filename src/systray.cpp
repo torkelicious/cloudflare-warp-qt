@@ -1,6 +1,7 @@
 #include "systray.h"
 #include <QApplication>
 #include <QMenu>
+#include <QSettings>
 #include <QFutureWatcher>
 
 static const int kPollDelays[] = {500, 1000, 2000, 3000, 4000, 5000};
@@ -17,15 +18,25 @@ SysTray::SysTray(MainFunctions *mf, QObject *parent)
 
     pollTimer = new QTimer(this);
     connect(pollTimer, &QTimer::timeout, this, &SysTray::checkStatus);
-    pollTimer->start(5000);
+
+    loadSettings();
+    pollTimer->start(systrayPollRate);
 
     togglePollTimer->setSingleShot(true);
     connect(togglePollTimer, &QTimer::timeout, this, &SysTray::pollToggleState);
 }
 
+void SysTray::loadSettings() {
+    QSettings settings;
+    systrayPollRate = settings.value("trayPollingRate", 5000).toInt();
+
+    if (pollTimer && pollTimer->isActive()) {
+        pollTimer->start(systrayPollRate);
+    }
+}
+
 void SysTray::checkStatus() {
     bool actualState = mf->isWarpConnected();
-
     if (actualState != lastKnownState) {
         lastKnownState = actualState;
         emit connectionChanged(actualState);
@@ -37,13 +48,13 @@ Widget *SysTray::ensureWidget() {
     if (!popupWidget) {
         popupWidget = new Widget(mf);
         connect(this, &SysTray::connectionChanged, popupWidget, &Widget::onConnectionChanged);
+        connect(popupWidget, &Widget::settingsChanged, this, &SysTray::loadSettings);
     }
     return popupWidget;
 }
 
 void SysTray::pollToggleState() {
     bool reality = mf->isWarpConnected();
-
     if (reality == toggleExpectedState || togglePollAttempt >= kPollDelaysCount) {
         if (reality != lastKnownState) {
             lastKnownState = reality;
@@ -52,22 +63,16 @@ void SysTray::pollToggleState() {
         updateStatus(reality);
         toggleAction->setEnabled(true);
         if (pollTimer)
-            pollTimer->start(5000);
+            pollTimer->start(systrayPollRate);
         return;
     }
-
     int delay = kPollDelays[togglePollAttempt++];
     togglePollTimer->start(delay);
 }
 
 void SysTray::startToggle() {
     toggleAction->setEnabled(false);
-    if (pollTimer && pollTimer
-
-
-        ->
-        isActive()
-    ) {
+    if (pollTimer && pollTimer->isActive()) {
         pollTimer->stop();
     }
     if (lastKnownState) {
@@ -95,31 +100,23 @@ void SysTray::startToggle() {
 
 void SysTray::setupTray() {
     trayIcon = new QSystemTrayIcon(this);
-
     QMenu *menu = new QMenu();
     trayIcon->setContextMenu(menu);
 
     toggleAction = new QAction("Connect", this);
-
     connect(toggleAction, &QAction::triggered, this, &SysTray::startToggle);
 
     menu->addAction(toggleAction);
     menu->addSeparator();
-
     menu->addAction("Show", [this]() { ensureWidget()->show(); });
-
     menu->addAction("Preferences", [this]() { ensureWidget()->openSettings(); });
-
     menu->addAction("Quit", qApp, &QApplication::quit);
 
     connect(trayIcon, &QSystemTrayIcon::activated, [this](QSystemTrayIcon::ActivationReason reason) {
         if (reason == QSystemTrayIcon::Trigger) {
             Widget *w = ensureWidget();
-            if (w->isVisible()) {
-                w->hide();
-            } else {
-                w->show();
-            }
+            if (w->isVisible()) w->hide();
+            else w->show();
         }
     });
 
@@ -128,10 +125,7 @@ void SysTray::setupTray() {
 }
 
 void SysTray::handleErrorBackoff(const QString &, const QString &) {
-    // back off polling after error
-    if (pollTimer) {
-        pollTimer->start(10000);
-    }
+    if (pollTimer) pollTimer->start(10000);
 }
 
 void SysTray::updateStatus(bool connected) {
@@ -147,12 +141,7 @@ void SysTray::updateStatus(bool connected) {
 }
 
 void SysTray::showErrorNotification(const QString &title, const QString &message) {
-    if (trayIcon && trayIcon
-
-
-        ->
-        isSystemTrayAvailable()
-    ) {
+    if (trayIcon && trayIcon->isSystemTrayAvailable()) {
         trayIcon->showMessage(title, message, QSystemTrayIcon::Critical, 5000);
     } else {
         qWarning() << title << ":" << message;
@@ -160,12 +149,7 @@ void SysTray::showErrorNotification(const QString &title, const QString &message
 }
 
 void SysTray::showInfoNotification(const QString &title, const QString &message) {
-    if (trayIcon && trayIcon
-
-
-        ->
-        isSystemTrayAvailable()
-    ) {
+    if (trayIcon && trayIcon->isSystemTrayAvailable()) {
         trayIcon->showMessage(title, message, QSystemTrayIcon::Information, 5000);
     } else {
         qDebug() << title << ":" << message;
