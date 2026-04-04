@@ -24,7 +24,14 @@ Widget::Widget(MainFunctions *mf, QWidget *parent)
     : QWidget(parent), ui(new Ui::Widget), mf(mf), connectedState(false), shouldUnfocus(false),
       pendingState(TransitionState::None), pollTimer(new QTimer(this)), expectedState(false), pollAttempt(0) {
     ui->setupUi(this);
-    setFixedSize(310, 405);
+    //setFixedSize(310, 405);
+
+    QSettings settings;
+    int minW = settings.value("minWidth", 300).toInt();
+    int minH = settings.value("minHeight", 400).toInt();
+    setMinimumSize(minW, minH);
+    resize(qMax(width(), minW), qMax(height(), minH));
+
     setWindowFlags(Qt::Tool | Qt::WindowStaysOnTopHint);
 
     pollTimer->setSingleShot(true);
@@ -32,7 +39,6 @@ Widget::Widget(MainFunctions *mf, QWidget *parent)
 
     refreshSettings();
 
-    QSettings settings;
     bool shouldAutoConnect = settings.value("autoConnect", false).toBool();
     bool actuallyConnected = mf->isWarpConnected();
 
@@ -51,6 +57,15 @@ Widget::~Widget() {
 void Widget::refreshSettings() {
     QSettings settings;
     shouldUnfocus = settings.value("minimizeOnUnfocus", true).toBool();
+    int minW = settings.value("minWidth", 300).toInt();
+    int minH = settings.value("minHeight", 400).toInt();
+    if (settings.value("useFixedSize", false).toBool()) {
+        setFixedSize(minW, minH);
+    } else {
+        setMinimumSize(minW, minH);
+        setMaximumSize(QWIDGETSIZE_MAX, QWIDGETSIZE_MAX);
+        resize(qMax(width(), minW), qMax(height(), minH));
+    }
 }
 
 void Widget::openSettings() {

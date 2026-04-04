@@ -19,7 +19,12 @@ public:
 
     void setupTray();
 
-public slots:
+public
+    slots:
+
+
+    
+
     void loadSettings();
 
     void handleErrorBackoff(const QString &title, const QString &message);
@@ -32,7 +37,11 @@ public slots:
 
     void showInfoNotification(const QString &title, const QString &message);
 
-signals:
+    signals:
+
+
+    
+
     void connectionChanged(bool connected);
 
 private:

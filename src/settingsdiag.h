@@ -38,6 +38,9 @@ private:
     QCheckBox *checkMinimizeOnUnfocus;
     QComboBox *comboMode;
     QSpinBox *pollingRateSpinBox;
+    QSpinBox *minimumWindowWidthSpinBox;
+    QSpinBox *minimumWindowHeightSpinBox;
+    QCheckBox *checkUseMinAsFixedSize;
     QPushButton *btnRegister;
     QPushButton *btnEnableDaemon;
     QPushButton *btnDisableOfficialTray;

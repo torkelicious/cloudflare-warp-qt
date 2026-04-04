@@ -30,7 +30,12 @@ void SysTray::loadSettings() {
     QSettings settings;
     systrayPollRate = settings.value("trayPollingRate", 5000).toInt();
 
-    if (pollTimer && pollTimer->isActive()) {
+    if (pollTimer &&pollTimer
+    
+    ->
+    isActive()
+    )
+    {
         pollTimer->start(systrayPollRate);
     }
 }
@@ -72,7 +77,12 @@ void SysTray::pollToggleState() {
 
 void SysTray::startToggle() {
     toggleAction->setEnabled(false);
-    if (pollTimer && pollTimer->isActive()) {
+    if (pollTimer &&pollTimer
+    
+    ->
+    isActive()
+    )
+    {
         pollTimer->stop();
     }
     if (lastKnownState) {
@@ -141,17 +151,31 @@ void SysTray::updateStatus(bool connected) {
 }
 
 void SysTray::showErrorNotification(const QString &title, const QString &message) {
-    if (trayIcon && trayIcon->isSystemTrayAvailable()) {
+    if (trayIcon &&trayIcon
+    
+    ->
+    isSystemTrayAvailable()
+    )
+    {
         trayIcon->showMessage(title, message, QSystemTrayIcon::Critical, 5000);
-    } else {
+    }
+    else
+    {
         qWarning() << title << ":" << message;
     }
 }
 
 void SysTray::showInfoNotification(const QString &title, const QString &message) {
-    if (trayIcon && trayIcon->isSystemTrayAvailable()) {
+    if (trayIcon &&trayIcon
+    
+    ->
+    isSystemTrayAvailable()
+    )
+    {
         trayIcon->showMessage(title, message, QSystemTrayIcon::Information, 5000);
-    } else {
+    }
+    else
+    {
         qDebug() << title << ":" << message;
     }
 }

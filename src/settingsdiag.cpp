@@ -24,7 +24,7 @@ static const QRegularExpression kModeRegex(QStringLiteral("^Mode:\\s*([^\n]+)"),
 SettingsDiag::SettingsDiag(MainFunctions *mf, QWidget *parent)
     : QDialog(parent), mf(mf) {
     setWindowTitle("Settings");
-    resize(320, 400);
+    resize(360, 460);
     setupUI();
     loadSettings();
 }
@@ -55,24 +55,24 @@ void SettingsDiag::setupUI() {
     QGroupBox *groupSystem = new QGroupBox("Troubleshooting", this);
     QVBoxLayout *systemLayout = new QVBoxLayout(groupSystem);
 
-    btnEnableDaemon = new QPushButton("Enable warp-svc (Warp Daemon)", this);
+    btnEnableDaemon = new QPushButton("Enable warp-svc (WARP Daemon)", this);
     btnEnableDaemon->setToolTip("Requires root: Enables and starts the background 'warp-svc' system service.");
 
     btnDisableOfficialTray = new QPushButton("Disable/Kill Official Tray", this);
     btnDisableOfficialTray->setToolTip(
-        "Disables user unit 'warp-taskbar' and kills the process if running. May require root.");
+        "Disables the user unit 'warp-taskbar' and kills the process if running. May require root.");
 
     systemLayout->addWidget(btnEnableDaemon);
     systemLayout->addWidget(btnDisableOfficialTray);
     mainLayout->addWidget(groupSystem);
 
-    QGroupBox *groupWarp = new QGroupBox("Warp Configuration", this);
+    QGroupBox *groupWarp = new QGroupBox("WARP Configuration", this);
     QFormLayout *warpLayout = new QFormLayout(groupWarp);
 
     comboMode = new QComboBox(this);
     comboMode->addItems({"warp", "doh", "warp+doh", "dot", "warp+dot", "tunnel_only"});
     comboMode->setToolTip(
-        "Select the operation mode for Cloudflare WARP. Changing this will apply the new mode via the CLI.");
+        "Selects the operation mode for Cloudflare WARP. Changing this will apply the new mode via the CLI.");
     // "proxy" mode is unsupported, so it is not in this list.
     // and nobody uses it anyways...
 
@@ -91,9 +91,35 @@ void SettingsDiag::setupUI() {
     pollingRateSpinBox->setSingleStep(50);
     pollingRateSpinBox->setSuffix(" ms");
     pollingRateSpinBox->setToolTip(
-        "How often the system tray icon checks the WARP daemon for status changes (in milliseconds).");
+        "Sets how often the system tray icon checks the WARP daemon for status changes (in milliseconds).");
 
-    advancedLayout->addRow("Systray Polling Rate:", pollingRateSpinBox);
+    minimumWindowWidthSpinBox = new QSpinBox(this);
+    minimumWindowWidthSpinBox->setSingleStep(1);
+    minimumWindowWidthSpinBox->setSuffix(" px");
+    minimumWindowWidthSpinBox->setRange(100, 4000);
+    minimumWindowWidthSpinBox->setToolTip("Sets the minimum width of the main window in pixels.");
+
+    minimumWindowHeightSpinBox = new QSpinBox(this);
+    minimumWindowHeightSpinBox->setSingleStep(1);
+    minimumWindowHeightSpinBox->setSuffix(" px");
+    minimumWindowHeightSpinBox->setRange(100, 4000);
+    minimumWindowHeightSpinBox->setToolTip("Sets the minimum height of the main window in pixels.");
+
+    advancedLayout->addRow("System Tray Polling Rate:", pollingRateSpinBox);
+
+    QHBoxLayout *minSizeLayout = new QHBoxLayout;
+    minSizeLayout->addWidget(minimumWindowWidthSpinBox);
+    minSizeLayout->addWidget(new QLabel("×"));
+    minSizeLayout->addWidget(minimumWindowHeightSpinBox);
+    minSizeLayout->setContentsMargins(0, 0, 0, 0);
+    advancedLayout->addRow("Minimum Window Size:", minSizeLayout);
+
+    checkUseMinAsFixedSize = new QCheckBox("Set Minimum Size as Fixed Size", this);
+    checkUseMinAsFixedSize->setToolTip(
+        "Prevents the window from being resized by locking it to the specified minimum dimensions.");
+
+    advancedLayout->addRow(checkUseMinAsFixedSize);
+
     mainLayout->addWidget(groupAdvanced);
 
     QHBoxLayout *btnLayout = new QHBoxLayout();
@@ -116,8 +142,10 @@ void SettingsDiag::loadSettings() {
     checkAutoStart->setChecked(settings.value("autoStart", false).toBool());
     checkShowOnStart->setChecked(settings.value("showOnStart", false).toBool());
     checkMinimizeOnUnfocus->setChecked(settings.value("minimizeOnUnfocus", false).toBool());
-
     pollingRateSpinBox->setValue(settings.value("trayPollingRate", 5000).toInt());
+    minimumWindowWidthSpinBox->setValue(settings.value("minWidth", 310).toInt());
+    minimumWindowHeightSpinBox->setValue(settings.value("minHeight", 405).toInt());
+    checkUseMinAsFixedSize->setChecked(settings.value("useFixedSize", false).toBool());
 
     QString mode = mf ? mf->GetCurrentMode() : QString();
     int idx = comboMode->findText(mode, Qt::MatchExactly);
@@ -132,6 +160,9 @@ void SettingsDiag::saveSettings() {
     settings.setValue("showOnStart", checkShowOnStart->isChecked());
     settings.setValue("minimizeOnUnfocus", checkMinimizeOnUnfocus->isChecked());
     settings.setValue("trayPollingRate", pollingRateSpinBox->value());
+    settings.setValue("minWidth", minimumWindowWidthSpinBox->value());
+    settings.setValue("minHeight", minimumWindowHeightSpinBox->value());
+    settings.setValue("useFixedSize", checkUseMinAsFixedSize->isChecked());
 
     setAutoStart(checkAutoStart->isChecked());
     QString currentMode = mf ? mf->GetCurrentMode() : QString();
@@ -271,7 +302,7 @@ void SettingsDiag::disableOfficialTray() {
                 QMessageBox::information(
                     this,
                     "Success",
-                    "Warp tray disabled and autostart overridden for this user."
+                    "WARP tray disabled and autostart overridden for this user."
                 );
             } else {
                 QMessageBox::warning(
