@@ -1,20 +1,17 @@
 #include "widget.h"
 #include "settingsdiag.h"
-#include <QApplication>
-#include <QCursor>
-#include <QScreen>
 #include <QSettings>
 #include <QFutureWatcher>
+#include <array>
 #include "./ui_widget.h"
 
-static const int kPollDelays[] = {500, 1000, 2000, 3000, 4000, 5000};
-static constexpr int kPollDelaysCount = sizeof(kPollDelays) / sizeof(kPollDelays[0]);
+static constexpr std::array<int, 6> kPollDelays = {500, 1000, 2000, 3000, 4000, 5000};
 
-// Cached HTML strings
 static const QString kPrivateHtml = QStringLiteral(
     "<html><body><p><span style='font-size:11pt; color:#b0b0b0;'>Your "
     "internet is </span><span style='font-size:11pt; font-weight:600; "
     "color:#F48120;'>private</span></p></body></html>");
+
 static const QString kNotPrivateHtml = QStringLiteral(
     "<html><body><p><span style='font-size:11pt; color:#b0b0b0;'>Your "
     "internet is </span><span style='font-size:11pt; font-weight:600; "
@@ -24,23 +21,17 @@ Widget::Widget(MainFunctions *mf, QWidget *parent)
     : QWidget(parent), ui(new Ui::Widget), mf(mf), connectedState(false), shouldUnfocus(false),
       pendingState(TransitionState::None), pollTimer(new QTimer(this)), expectedState(false), pollAttempt(0) {
     ui->setupUi(this);
-    //setFixedSize(310, 405);
 
-    QSettings settings;
-    int minW = settings.value("minWidth", 300).toInt();
-    int minH = settings.value("minHeight", 400).toInt();
-    setMinimumSize(minW, minH);
-    resize(qMax(width(), minW), qMax(height(), minH));
+    refreshSettings();
 
     setWindowFlags(Qt::Tool | Qt::WindowStaysOnTopHint);
 
     pollTimer->setSingleShot(true);
     connect(pollTimer, &QTimer::timeout, this, &Widget::pollConnectionState);
 
-    refreshSettings();
-
-    bool shouldAutoConnect = settings.value("autoConnect", false).toBool();
-    bool actuallyConnected = mf->isWarpConnected();
+    const QSettings settings;
+    const bool shouldAutoConnect = settings.value("autoConnect", false).toBool();
+    const bool actuallyConnected = mf->isWarpConnected();
 
     if (shouldAutoConnect && !actuallyConnected) {
         mf->cliConnect();
@@ -55,16 +46,17 @@ Widget::~Widget() {
 }
 
 void Widget::refreshSettings() {
-    QSettings settings;
+    const QSettings settings;
     shouldUnfocus = settings.value("minimizeOnUnfocus", true).toBool();
-    int minW = settings.value("minWidth", 300).toInt();
-    int minH = settings.value("minHeight", 400).toInt();
+
+    const int targetW = settings.value("minWidth", 310).toInt();
+    const int targetH = settings.value("minHeight", 405).toInt();
+
     if (settings.value("useFixedSize", false).toBool()) {
-        setFixedSize(minW, minH);
+        setFixedSize(targetW, targetH);
     } else {
-        setMinimumSize(minW, minH);
+        setMinimumSize(targetW, targetH);
         setMaximumSize(QWIDGETSIZE_MAX, QWIDGETSIZE_MAX);
-        resize(qMax(width(), minW), qMax(height(), minH));
     }
 }
 
@@ -79,19 +71,11 @@ void Widget::on_btn_settings_clicked() {
     openSettings();
 }
 
-/*
 void Widget::closeEvent(QCloseEvent *event) {
-    setAttribute(Qt::WA_DeleteOnClose, true);
-    event->accept();
-}
-*/
-
-void Widget::closeEvent(QCloseEvent *event) {
-    // keep in mem instead
+    // Keep in mem instead
     hide();
     event->ignore();
 }
-
 
 bool Widget::event(QEvent *event) {
     if (event->type() == QEvent::WindowDeactivate && shouldUnfocus) {
@@ -101,7 +85,7 @@ bool Widget::event(QEvent *event) {
     return QWidget::event(event);
 }
 
-void Widget::updateUI() {
+void Widget::updateUI() const {
     if (pendingState == TransitionState::Connecting) {
         ui->btn_start->setEnabled(false);
         ui->btn_start->setText("Connecting...");
@@ -151,9 +135,7 @@ void Widget::updateUI() {
 }
 
 void Widget::pollConnectionState() {
-    bool reality = mf->isWarpConnected();
-
-    if (reality == expectedState || pollAttempt >= kPollDelaysCount) {
+    if (const bool reality = mf->isWarpConnected(); reality == expectedState || pollAttempt >= kPollDelays.size()) {
         connectedState = reality;
         setPending(TransitionState::None);
         emit connectionChanged(connectedState);
@@ -161,22 +143,27 @@ void Widget::pollConnectionState() {
         return;
     }
 
-    int delay = kPollDelays[pollAttempt++];
+    const int delay = kPollDelays[pollAttempt++];
     pollTimer->start(delay);
 }
 
 void Widget::on_btn_start_clicked() {
+    // early return to prevent rapid spam clicking
+    if (pendingState != TransitionState::None) {
+        return;
+    }
+
     setPending(connectedState ? TransitionState::Disconnecting : TransitionState::Connecting);
     updateUI();
 
-    auto watcher = new QFutureWatcher<MainFunctions::CommandResult>(this);
+    auto *watcher = new QFutureWatcher<MainFunctions::CommandResult>(this);
     if (!connectedState) {
         watcher->setFuture(mf->cliConnectAsync());
     } else {
         watcher->setFuture(mf->cliDisconnectAsync());
     }
 
-    connect(watcher, &QFutureWatcherBase::finished, this, [this, watcher]() {
+    connect(watcher, &QFutureWatcherBase::finished, this, [this, watcher] {
         watcher->deleteLater();
         expectedState = !connectedState;
         pollAttempt = 0;
@@ -185,7 +172,7 @@ void Widget::on_btn_start_clicked() {
     });
 }
 
-void Widget::onConnectionChanged(bool connected) {
+void Widget::onConnectionChanged(const bool connected) {
     if (connectedState != connected) {
         connectedState = connected;
         setPending(TransitionState::None);
@@ -193,14 +180,14 @@ void Widget::onConnectionChanged(bool connected) {
     }
 }
 
-void Widget::setPending(TransitionState state) {
+void Widget::setPending(const TransitionState state) {
     pendingState = state;
 }
 
-QString Widget::getPrivateHtml() const {
+QString Widget::getPrivateHtml() {
     return kPrivateHtml;
 }
 
-QString Widget::getNotPrivateHtml() const {
+QString Widget::getNotPrivateHtml() {
     return kNotPrivateHtml;
 }

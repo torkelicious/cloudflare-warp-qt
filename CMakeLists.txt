@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.16)
 project(cloudflare-warp-qt VERSION 0.1 LANGUAGES CXX)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
@@ -14,58 +15,62 @@ find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets Concurrent Network DBu
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Concurrent Network DBus)
 
 set(PROJECT_SOURCES
-        src/main.cpp
-        src/widget.cpp
-        src/widget.h
-        src/widget.ui
-        src/mainfunctions.cpp
-        src/mainfunctions.h
-        src/systray.cpp
-        src/systray.h
-        src/settingsdiag.cpp
-        src/settingsdiag.h
-        resources/resources.qrc
+    src/main.cpp
+    src/widget.cpp
+    src/widget.h
+    src/widget.ui
+    src/mainfunctions.cpp
+    src/mainfunctions.h
+    src/systray.cpp
+    src/systray.h
+    src/settingsdiag.cpp
+    src/settingsdiag.h
+    resources/resources.qrc
 )
 
-if (QT_VERSION_MAJOR GREATER_EQUAL 6)
+if(QT_VERSION_MAJOR GREATER_EQUAL 6)
     qt_add_executable(${PROJECT_NAME} MANUAL_FINALIZATION ${PROJECT_SOURCES})
-else ()
+else()
     add_executable(${PROJECT_NAME} ${PROJECT_SOURCES})
-endif ()
+endif()
 
 set_target_properties(${PROJECT_NAME}
-        PROPERTIES
-        OUTPUT_NAME ${PROJECT_NAME}
+    PROPERTIES OUTPUT_NAME ${PROJECT_NAME}
 )
 
 target_link_libraries(${PROJECT_NAME}
-        PRIVATE
-        Qt${QT_VERSION_MAJOR}::Widgets
-        Qt${QT_VERSION_MAJOR}::Concurrent
-        Qt${QT_VERSION_MAJOR}::Network
-        Qt${QT_VERSION_MAJOR}::DBus
+    PRIVATE
+    Qt${QT_VERSION_MAJOR}::Widgets
+    Qt${QT_VERSION_MAJOR}::Concurrent
+    Qt${QT_VERSION_MAJOR}::Network
+    Qt${QT_VERSION_MAJOR}::DBus
 )
 
 target_include_directories(${PROJECT_NAME}
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src
+    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
+# Installation Instructions
 include(GNUInstallDirs)
 
+# Install executable
 install(TARGETS ${PROJECT_NAME}
-        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
+# Install desktop file
 install(FILES resources/cloudflare-warp-qt.desktop
-        DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/applications
-        RENAME ${PROJECT_NAME}.desktop
+    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/applications
+    RENAME ${PROJECT_NAME}.desktop
 )
 
+# Install application icon
 install(FILES resources/app_icon.png
-        DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/256x256/apps
-        RENAME ${PROJECT_NAME}.png
+    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/256x256/apps
+    RENAME ${PROJECT_NAME}.png
 )
 
-if (QT_VERSION_MAJOR EQUAL 6)
+# Finalize for Qt6
+if(QT_VERSION_MAJOR EQUAL 6)
     qt_finalize_executable(${PROJECT_NAME})
-endif ()
+endif()

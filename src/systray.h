@@ -1,13 +1,13 @@
 #ifndef SYSTRAY_H
 #define SYSTRAY_H
 
-#include <QAction>
-#include <QObject>
 #include <QSystemTrayIcon>
-#include <QTimer>
 #include <QPointer>
 #include "mainfunctions.h"
 #include "widget.h"
+
+class QAction;
+class QTimer;
 
 class SysTray : public QObject {
     Q_OBJECT
@@ -15,33 +15,26 @@ class SysTray : public QObject {
 public:
     explicit SysTray(MainFunctions *mf, QObject *parent = nullptr);
 
+    ~SysTray() override;
+
     Widget *ensureWidget();
 
     void setupTray();
 
-public
-    slots:
-
-
-    
-
+public slots:
     void loadSettings();
 
-    void handleErrorBackoff(const QString &title, const QString &message);
+    void handleErrorBackoff(const QString &title, const QString &message) const;
 
-    void updateStatus(bool connected);
+    void updateStatus(bool connected) const;
 
     void checkStatus();
 
-    void showErrorNotification(const QString &title, const QString &message);
+    void showErrorNotification(const QString &title, const QString &message) const;
 
-    void showInfoNotification(const QString &title, const QString &message);
+    void showInfoNotification(const QString &title, const QString &message) const;
 
-    signals:
-
-
-    
-
+signals:
     void connectionChanged(bool connected);
 
 private:
@@ -57,7 +50,7 @@ private:
 
     QTimer *togglePollTimer;
     bool toggleExpectedState;
-    int togglePollAttempt;
+    size_t togglePollAttempt;
 
     int systrayPollRate = 5000;
 

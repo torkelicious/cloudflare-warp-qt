@@ -21,7 +21,7 @@ class Widget : public QWidget {
 public:
     explicit Widget(MainFunctions *mf, QWidget *parent = nullptr);
 
-    ~Widget();
+    ~Widget() override;
 
 protected:
     void closeEvent(QCloseEvent *event) override;
@@ -54,18 +54,19 @@ private:
 
     QTimer *pollTimer;
     bool expectedState;
-    int pollAttempt;
+    size_t pollAttempt;
 
     void pollConnectionState();
 
     void refreshSettings();
 
-    void updateUI();
+    void updateUI() const;
 
     void setPending(TransitionState state);
 
-    QString getPrivateHtml() const;
+    [[nodiscard]] static QString getPrivateHtml();
 
-    QString getNotPrivateHtml() const;
+    [[nodiscard]] static QString getNotPrivateHtml();
 };
+
 #endif // WIDGET_H

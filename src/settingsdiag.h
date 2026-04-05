@@ -25,26 +25,29 @@ private slots:
 
     void disableOfficialTray();
 
+    void resetSettings();
+
 private:
     void setupUI();
 
-    void loadSettings();
+    void loadSettings() const;
 
-    void setAutoStart(bool enable);
+    static void setAutoStart(bool enable);
 
-    QCheckBox *checkAutoStart;
-    QCheckBox *checkAutoConnect;
-    QCheckBox *checkShowOnStart;
-    QCheckBox *checkMinimizeOnUnfocus;
-    QComboBox *comboMode;
-    QSpinBox *pollingRateSpinBox;
-    QSpinBox *minimumWindowWidthSpinBox;
-    QSpinBox *minimumWindowHeightSpinBox;
-    QCheckBox *checkUseMinAsFixedSize;
-    QPushButton *btnRegister;
-    QPushButton *btnEnableDaemon;
-    QPushButton *btnDisableOfficialTray;
-    MainFunctions *mf;
+    QCheckBox *checkAutoStart = nullptr;
+    QCheckBox *checkAutoConnect = nullptr;
+    QCheckBox *checkShowOnStart = nullptr;
+    QCheckBox *checkMinimizeOnUnfocus = nullptr;
+    QComboBox *comboMode = nullptr;
+    QSpinBox *pollingRateSpinBox = nullptr;
+    QSpinBox *minimumWindowWidthSpinBox = nullptr;
+    QSpinBox *minimumWindowHeightSpinBox = nullptr;
+    QCheckBox *checkUseMinAsFixedSize = nullptr;
+    QPushButton *btnRegister = nullptr;
+    QPushButton *btnEnableDaemon = nullptr;
+    QPushButton *btnDisableOfficialTray = nullptr;
+    QPushButton *btnReset = nullptr;
+    MainFunctions *mf = nullptr;
     QSettings settings;
 };
 

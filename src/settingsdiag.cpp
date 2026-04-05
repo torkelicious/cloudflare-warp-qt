@@ -12,14 +12,10 @@
 #include <QStandardPaths>
 #include <QTextStream>
 #include <QVBoxLayout>
-#include <QHBoxLayout>
 #include <QSpinBox>
-#include <QRegularExpression>
 #include <QCoreApplication>
 #include <QFutureWatcher>
-
-static const QRegularExpression kModeRegex(QStringLiteral("^Mode:\\s*([^\n]+)"),
-                                           QRegularExpression::MultilineOption);
+#include <QDebug>
 
 SettingsDiag::SettingsDiag(MainFunctions *mf, QWidget *parent)
     : QDialog(parent), mf(mf) {
@@ -30,10 +26,10 @@ SettingsDiag::SettingsDiag(MainFunctions *mf, QWidget *parent)
 }
 
 void SettingsDiag::setupUI() {
-    QVBoxLayout *mainLayout = new QVBoxLayout(this);
+    auto *mainLayout = new QVBoxLayout(this);
 
-    QGroupBox *groupGeneral = new QGroupBox("General", this);
-    QVBoxLayout *generalLayout = new QVBoxLayout(groupGeneral);
+    auto *groupGeneral = new QGroupBox("General", this);
+    auto *generalLayout = new QVBoxLayout(groupGeneral);
 
     checkAutoStart = new QCheckBox("Start App on System Boot", this);
     checkAutoConnect = new QCheckBox("Auto-Connect WARP on Start", this);
@@ -52,8 +48,8 @@ void SettingsDiag::setupUI() {
     generalLayout->addWidget(checkMinimizeOnUnfocus);
     mainLayout->addWidget(groupGeneral);
 
-    QGroupBox *groupSystem = new QGroupBox("Troubleshooting", this);
-    QVBoxLayout *systemLayout = new QVBoxLayout(groupSystem);
+    auto *groupSystem = new QGroupBox("Troubleshooting", this);
+    auto *systemLayout = new QVBoxLayout(groupSystem);
 
     btnEnableDaemon = new QPushButton("Enable warp-svc (WARP Daemon)", this);
     btnEnableDaemon->setToolTip("Requires root: Enables and starts the background 'warp-svc' system service.");
@@ -66,15 +62,13 @@ void SettingsDiag::setupUI() {
     systemLayout->addWidget(btnDisableOfficialTray);
     mainLayout->addWidget(groupSystem);
 
-    QGroupBox *groupWarp = new QGroupBox("WARP Configuration", this);
-    QFormLayout *warpLayout = new QFormLayout(groupWarp);
+    auto *groupWarp = new QGroupBox("WARP Configuration", this);
+    auto *warpLayout = new QFormLayout(groupWarp);
 
     comboMode = new QComboBox(this);
     comboMode->addItems({"warp", "doh", "warp+doh", "dot", "warp+dot", "tunnel_only"});
     comboMode->setToolTip(
         "Selects the operation mode for Cloudflare WARP. Changing this will apply the new mode via the CLI.");
-    // "proxy" mode is unsupported, so it is not in this list.
-    // and nobody uses it anyways...
 
     btnRegister = new QPushButton("Register New Device", this);
     btnRegister->setToolTip("Registers a new device with Cloudflare WARP. Warning: This may reset your license key.");
@@ -83,8 +77,8 @@ void SettingsDiag::setupUI() {
     warpLayout->addRow(btnRegister);
     mainLayout->addWidget(groupWarp);
 
-    QGroupBox *groupAdvanced = new QGroupBox("Advanced", this);
-    QFormLayout *advancedLayout = new QFormLayout(groupAdvanced);
+    auto *groupAdvanced = new QGroupBox("Advanced", this);
+    auto *advancedLayout = new QFormLayout(groupAdvanced);
 
     pollingRateSpinBox = new QSpinBox(this);
     pollingRateSpinBox->setRange(100, 100000);
@@ -107,24 +101,30 @@ void SettingsDiag::setupUI() {
 
     advancedLayout->addRow("System Tray Polling Rate:", pollingRateSpinBox);
 
-    QHBoxLayout *minSizeLayout = new QHBoxLayout;
+    auto *minSizeLayout = new QHBoxLayout;
     minSizeLayout->addWidget(minimumWindowWidthSpinBox);
     minSizeLayout->addWidget(new QLabel("×"));
     minSizeLayout->addWidget(minimumWindowHeightSpinBox);
     minSizeLayout->setContentsMargins(0, 0, 0, 0);
-    advancedLayout->addRow("Minimum Window Size:", minSizeLayout);
+    advancedLayout->addRow("Window Size:", minSizeLayout);
 
-    checkUseMinAsFixedSize = new QCheckBox("Set Minimum Size as Fixed Size", this);
+    checkUseMinAsFixedSize = new QCheckBox("Lock Window to this Size", this);
     checkUseMinAsFixedSize->setToolTip(
-        "Prevents the window from being resized by locking it to the specified minimum dimensions.");
+        "Locks the main window to the width and height specified above, preventing resizing, may require restarting app.");
 
     advancedLayout->addRow(checkUseMinAsFixedSize);
 
     mainLayout->addWidget(groupAdvanced);
 
-    QHBoxLayout *btnLayout = new QHBoxLayout();
-    QPushButton *btnSave = new QPushButton("Save", this);
-    QPushButton *btnCancel = new QPushButton("Cancel", this);
+    auto *btnLayout = new QHBoxLayout;
+
+    btnReset = new QPushButton("Reset to Defaults", this);
+    btnReset->setToolTip("Resets all application settings to their original default values.");
+
+    auto *btnSave = new QPushButton("Save", this);
+    auto *btnCancel = new QPushButton("Cancel", this);
+
+    btnLayout->addWidget(btnReset);
     btnLayout->addStretch();
     btnLayout->addWidget(btnSave);
     btnLayout->addWidget(btnCancel);
@@ -132,12 +132,13 @@ void SettingsDiag::setupUI() {
 
     connect(btnSave, &QPushButton::clicked, this, &SettingsDiag::saveSettings);
     connect(btnCancel, &QPushButton::clicked, this, &SettingsDiag::reject);
+    connect(btnReset, &QPushButton::clicked, this, &SettingsDiag::resetSettings);
     connect(btnRegister, &QPushButton::clicked, this, &SettingsDiag::registerNewClient);
     connect(btnEnableDaemon, &QPushButton::clicked, this, &SettingsDiag::enableDaemon);
     connect(btnDisableOfficialTray, &QPushButton::clicked, this, &SettingsDiag::disableOfficialTray);
 }
 
-void SettingsDiag::loadSettings() {
+void SettingsDiag::loadSettings() const {
     checkAutoConnect->setChecked(settings.value("autoConnect", false).toBool());
     checkAutoStart->setChecked(settings.value("autoStart", false).toBool());
     checkShowOnStart->setChecked(settings.value("showOnStart", false).toBool());
@@ -147,10 +148,15 @@ void SettingsDiag::loadSettings() {
     minimumWindowHeightSpinBox->setValue(settings.value("minHeight", 405).toInt());
     checkUseMinAsFixedSize->setChecked(settings.value("useFixedSize", false).toBool());
 
-    QString mode = mf ? mf->GetCurrentMode() : QString();
-    int idx = comboMode->findText(mode, Qt::MatchExactly);
-    if (idx >= 0) {
-        comboMode->setCurrentIndex(idx);
+    const QString mode = mf ? mf->GetCurrentMode() : QString();
+
+    if (!mode.isEmpty()) {
+        if (const int idx = comboMode->findText(mode, Qt::MatchExactly); idx >= 0) {
+            comboMode->setCurrentIndex(idx);
+        } else {
+            comboMode->addItem(mode);
+            comboMode->setCurrentIndex(comboMode->count() - 1);
+        }
     }
 }
 
@@ -165,15 +171,34 @@ void SettingsDiag::saveSettings() {
     settings.setValue("useFixedSize", checkUseMinAsFixedSize->isChecked());
 
     setAutoStart(checkAutoStart->isChecked());
-    QString currentMode = mf ? mf->GetCurrentMode() : QString();
-    QString selectedMode = comboMode->currentText();
-    if (!selectedMode.isEmpty() && currentMode.compare(selectedMode, Qt::CaseInsensitive) != 0) {
+    const QString currentMode = mf ? mf->GetCurrentMode() : QString();
+
+    if (const QString selectedMode = comboMode->currentText(); !selectedMode.isEmpty() && currentMode.compare(
+                                                                   selectedMode, Qt::CaseInsensitive) != 0) {
         if (mf) {
             mf->runCommand("warp-cli", {"mode", selectedMode});
             mf->refreshCachedMode();
         }
     }
     accept();
+}
+
+void SettingsDiag::resetSettings() {
+    auto reply = QMessageBox::question(
+        this,
+        "Reset Settings",
+        "Are you sure you want to reset all settings to their default values?\n\nThis cannot be undone.",
+        QMessageBox::Yes | QMessageBox::No,
+        QMessageBox::No
+    );
+
+    if (reply == QMessageBox::Yes) {
+        settings.clear();
+        setAutoStart(false);
+        loadSettings();
+        QMessageBox::information(this, "Settings Reset",
+                                 "Settings have been restored to defaults.\n\nClick 'Save' to apply them, or 'Cancel' to abort.");
+    }
 }
 
 void SettingsDiag::registerNewClient() {
@@ -184,42 +209,51 @@ void SettingsDiag::registerNewClient() {
         QMessageBox::Yes | QMessageBox::No);
 
     if (reply == QMessageBox::Yes) {
-        if (mf)
-            mf->cliRegister();
+        MainFunctions::cliRegister();
     }
 }
 
 void SettingsDiag::enableDaemon() {
-    auto watcher = new QFutureWatcher<MainFunctions::CommandResult>(this);
+    btnEnableDaemon->setEnabled(false);
+    btnEnableDaemon->setText("Waiting for authentication...");
+
+    auto *watcher = new QFutureWatcher<MainFunctions::CommandResult>(this);
     if (!mf) {
         watcher->deleteLater();
+        btnEnableDaemon->setEnabled(true);
+        btnEnableDaemon->setText("Enable warp-svc (WARP Daemon)");
         return;
     }
     watcher->setFuture(mf->runCommandAsync("pkexec", {"systemctl", "enable", "--now", "warp-svc"}, 120000));
-    connect(watcher, &QFutureWatcherBase::finished, this, [this, watcher]() {
-        auto res = watcher->future().result();
+    connect(watcher, &QFutureWatcherBase::finished, this, [this, watcher] {
+        const auto [exitCode, out, err, timedOut] = watcher->future().result();
         watcher->deleteLater();
-        if (!res.timedOut && res.exitCode == 0) {
+
+        btnEnableDaemon->setEnabled(true);
+        btnEnableDaemon->setText("Enable warp-svc (WARP Daemon)");
+
+        if (!timedOut && exitCode == 0) {
             QMessageBox::information(this, "Success",
                                      "'warp-svc' system service enabled and started.");
         } else {
-            QString err = !res.err.isEmpty()
-                              ? res.err
-                              : (!res.out.isEmpty()
-                                     ? res.out
-                                     : (res.timedOut
-                                            ? "Timed out waiting for authentication or command to finish"
-                                            : "Unknown error"));
+            const QString errMsg = !err.isEmpty()
+                                       ? err
+                                       : (!out.isEmpty()
+                                              ? out
+                                              : (timedOut
+                                                     ? "Timed out waiting for authentication or command to finish"
+                                                     : "Unknown error"));
             QMessageBox::warning(this, "Operation Failed",
-                                 QString("Failed to enable/start 'warp-svc'.\n\nDetails:\n%1").arg(err));
+                                 QString("Failed to enable/start 'warp-svc'.\n\nDetails:\n%1").arg(errMsg));
         }
     });
 }
 
-void SettingsDiag::setAutoStart(bool enable) {
+void SettingsDiag::setAutoStart(const bool enable) {
     const QString autostartDir = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation) + "/autostart";
-    QDir().mkpath(autostartDir);
-
+    if (const bool created = QDir().mkpath(autostartDir); !created) {
+        qWarning() << "Failed to create autostart directory";
+    }
     const QString desktopPath = autostartDir + "/cloudflare-warp-qt.desktop";
 
     if (enable) {
@@ -253,26 +287,35 @@ void SettingsDiag::setAutoStart(bool enable) {
 }
 
 void SettingsDiag::disableOfficialTray() {
-    auto watcher1 = new QFutureWatcher<MainFunctions::CommandResult>(this);
+    btnDisableOfficialTray->setEnabled(false);
+    btnDisableOfficialTray->setText("Disabling tray...");
+
+    auto *watcher1 = new QFutureWatcher<MainFunctions::CommandResult>(this);
     if (!mf) {
         watcher1->deleteLater();
+        btnDisableOfficialTray->setEnabled(true);
+        btnDisableOfficialTray->setText("Disable/Kill Official Tray");
         return;
     }
     watcher1->setFuture(
         mf->runCommandAsync("systemctl", {"--user", "disable", "warp-taskbar"}, 10000));
 
-    connect(watcher1, &QFutureWatcherBase::finished, this, [this, watcher1]() {
-        auto res1 = watcher1->future().result();
+    connect(watcher1, &QFutureWatcherBase::finished, this, [this, watcher1] {
+        const auto res1 = watcher1->future().result();
         watcher1->deleteLater();
 
         if (!mf) return;
-        auto watcher2 = new QFutureWatcher<MainFunctions::CommandResult>(this);
+        auto *watcher2 = new QFutureWatcher<MainFunctions::CommandResult>(this);
         watcher2->setFuture(
             mf->runCommandAsync("systemctl", {"--user", "stop", "warp-taskbar"}, 5000)
         );
 
-        connect(watcher2, &QFutureWatcherBase::finished, this, [this, res1, watcher2]() {
+        // Passed `this` as context to prevent dangling execution if dialog is closed
+        connect(watcher2, &QFutureWatcherBase::finished, this, [this, res1, watcher2] {
             watcher2->deleteLater();
+
+            btnDisableOfficialTray->setEnabled(true);
+            btnDisableOfficialTray->setText("Disable/Kill Official Tray");
 
             const QString autostartDir =
                     QStandardPaths::writableLocation(QStandardPaths::ConfigLocation)
@@ -284,7 +327,7 @@ void SettingsDiag::disableOfficialTray() {
                     autostartDir + "/com.cloudflare.WarpTaskbar.desktop";
 
             QFile file(desktopPath);
-            bool ok = file.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text);
+            const bool ok = file.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text);
 
             if (ok) {
                 QTextStream out(&file);

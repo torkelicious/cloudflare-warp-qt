@@ -1,10 +1,10 @@
 #ifndef MAINFUNCTIONS_H
 #define MAINFUNCTIONS_H
 
-#include <QString>
 #include <QFuture>
 #include <QObject>
 #include <QFileSystemWatcher>
+#include <QString>
 
 class MainFunctions : public QObject {
     Q_OBJECT
@@ -21,13 +21,13 @@ public:
 
     QString runCommand(const QString &program, const QStringList &arguments);
 
-    CommandResult runCommandResult(const QString &program,
-                                   const QStringList &arguments,
-                                   int timeoutMs = 3000);
+    static CommandResult runCommandResult(const QString &program,
+                                          const QStringList &arguments,
+                                          const int timeoutMs = 3000);
 
-    QFuture<CommandResult> runCommandAsync(const QString &program,
-                                           const QStringList &arguments,
-                                           int timeoutMs = 3000);
+    static QFuture<CommandResult> runCommandAsync(const QString &program,
+                                                  const QStringList &arguments,
+                                                  const int timeoutMs = 3000);
 
     void cliConnect();
 
@@ -37,11 +37,11 @@ public:
 
     QFuture<CommandResult> cliDisconnectAsync();
 
-    void cliRegister();
+    static void cliRegister();
 
     QString cliStatus();
 
-    QFuture<CommandResult> cliStatusAsync(int timeoutMs = 3000);
+    QFuture<CommandResult> cliStatusAsync(const int timeoutMs = 3000);
 
     bool isServiceActive();
 
@@ -49,27 +49,18 @@ public:
 
     void refreshCachedMode();
 
-    bool isWarpConnected();
+    bool isWarpConnected() const;
 
-    signals:
-
-
-    
-
+signals:
     void errorOccurred(const QString &title, const QString &message);
 
     void infoOccurred(const QString &title, const QString &message);
 
-private
-    slots:
-
-
-    
-
+private slots:
     void checkResolvConf();
 
 private:
-    void setupToggleOperation(QFuture<CommandResult> future, bool isConnect);
+    void setupToggleOperation(const QFuture<CommandResult> &future, bool isConnect);
 
     bool isConnecting = false;
     bool isDisconnecting = false;
