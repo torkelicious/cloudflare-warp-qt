@@ -1,5 +1,5 @@
 pkgname=cloudflare-warp-qt-git
-pkgver=r91.3ba1a3f
+pkgver=r92.cad8892
 pkgrel=1
 pkgdesc="Qt6 C++ tray application for Cloudflare WARP via warp-cli"
 arch=("x86_64")
